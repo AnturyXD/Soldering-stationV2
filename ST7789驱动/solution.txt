@@ -1,0 +1,32 @@
+如果你没有成功完成实验。首先确保你的芯片是STM32F103系列
+首先拿出示波器，ST7789的波形，SCL和SDA会有高频率的信号，不一定为方波(因为有的示波器比较落后跟不上M级别的SPI)，DC端也应该有波形。CS,RES引脚并不会频繁跳变
+注:CS可以不接，很多厂家都默认设置位0，即选中状态。BLK可以不接，BLK为背光设置
+
+1.如果你没有示波器，那么直接使用万用表调到蜂鸣挡，检测杜邦线的通断。如果没有出现问题进行下一步。杜邦线出问题的概率并不小，请不要忽视这个问题,杜邦线的电阻大于1欧的统一认定为不合格
+
+2.如果你使用的是软件SPI，请检查 #define SoftWare_SPI 1，还有是否正确配置为你的引脚
+	#define OLED_SCL(x) GPIO_WriteBit(GPIOB,GPIO_Pin_13,(BitAction)x)    //SCL 
+	#define OLED_SDA(x) GPIO_WriteBit(GPIOB,GPIO_Pin_15,(BitAction)(x))  //SDA
+你的引脚是否正常进行初始化
+	#if SoftWare_SPI	
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13|GPIO_Pin_15;	 
+		GPIO_Init(GPIOB, &GPIO_InitStructure);
+		GPIO_SetBits(GPIOB,GPIO_Pin_13|GPIO_Pin_15);
+	//------------------------------------SCL|SDA-----------------------------------------
+只需修改这两个部分
+
+3.如果你使用的是硬件SPI，请检查你的硬件SPI是否设置正确 #define SoftWare_SPI 0，是否选择正确如 SPI1，SPI2。硬件SPI的选择通过这个宏定义进行修改   #define ST7789_HSPI SPI1
+如果还是出现问题，那么请取消快速模式,设置为#define Fast_Mode 0 ,注意使用SPI2请关闭Fast_Mode
+如果还是不行，那就见鬼了，我在里面设置了很多东西，让硬件SPI智能化，按道理只需修改 #define ST7789_HSPI SPI1   ,然后把引脚插入对应的SCK和MOSI（SDA）上即可.
+你并不用去修改这个，和这个没有关系，这个只为软件SPI服务
+	#define OLED_SCL(x) GPIO_WriteBit(GPIOB,GPIO_Pin_13,(BitAction)x)    //SCL 
+	#define OLED_SDA(x) GPIO_WriteBit(GPIOB,GPIO_Pin_15,(BitAction)(x))  //SDA
+
+4.配置了DC端口,但是DC端口没有信号，取消使用快速模式#define Fast_Mode 0   为了避免你没有正确配置快速模式的DC，因为快速模式使用的是寄存器操作GPIOB->BSRR = DC_Pin(10);这是GPIOB_Pin10 如果你需要修改为 GPIOA_Pin_2 则 GPIOA->BSRR = DC_Pin(2),对应的 GPIOA->BRR也要进行修改,比较麻烦所以你还是取消快速模式使用,默认的OLED_DC(x)
+
+5.如果你看了以上条件你都做了，但是还是失败了，那么最后一个假设，你的芯片坏了，写一个简单的代码让对应IO口电平翻转，确保GPIO正常.
+
+如果你还是失败了，那么请到bilibili私信我UID:437280309
+
+其它：
+照片颜色显示不正确，打开颜色翻转。照片选择MSB,高位在前。并且在使用lmg2Lcd一定要勾选包含图片头数据,字无法显示，因为笔的颜色和屏幕颜色重合了

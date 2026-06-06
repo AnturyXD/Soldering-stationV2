@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>焊台拓展板 V0.3</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --panel2: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --line: #d9e1ec;
+      --green: #12805c;
+      --red: #c2413b;
+      --blue: #246bfe;
+      --amber: #b76e00;
+      --cyan: #008ea8;
+      --ink: #101828;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .topbar, .metrics, .panel, .tabs {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr 150px 92px 92px;
+      gap: 8px;
+      padding: 10px;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .title { font-size: 18px; font-weight: 750; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    input, button, select {
+      font: inherit;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      height: 38px;
+    }
+    input { padding: 0 10px; min-width: 0; }
+    button {
+      padding: 0 12px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+    button.primary { border-color: var(--blue); color: var(--blue); }
+    button.danger { border-color: var(--red); color: var(--red); }
+    button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      overflow: hidden;
+    }
+    .metric {
+      padding: 11px 12px;
+      border-right: 1px solid var(--line);
+      min-height: 72px;
+    }
+    .metric:last-child { border-right: 0; }
+    .k { color: var(--muted); font-size: 12px; }
+    .v { margin-top: 6px; font-size: 20px; font-weight: 760; overflow-wrap: anywhere; }
+    .ok { color: var(--green); }
+    .bad { color: var(--red); }
+    .warn { color: var(--amber); }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 8px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 12px;
+    }
+    .panel { padding: 12px; }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+    .loads {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .load {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel2);
+      display: grid;
+      gap: 8px;
+      min-height: 122px;
+    }
+    .load-name { font-weight: 750; }
+    .state-pill {
+      width: 76px;
+      height: 28px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: #8a97aa;
+      font-weight: 760;
+    }
+    .state-pill.on { background: var(--green); }
+    .switch-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    canvas {
+      width: 100%;
+      height: 278px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      display: block;
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 6px 10px;
+      font-size: 13px;
+    }
+    .kv div {
+      padding: 7px 0;
+      border-bottom: 1px solid var(--line);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    #log {
+      height: 280px;
+      overflow: auto;
+      white-space: pre-wrap;
+      background: #111827;
+      color: #d1d5db;
+      border-radius: 8px;
+      border: 1px solid #283142;
+      padding: 10px;
+      font: 12px/1.45 Consolas, "SFMono-Regular", monospace;
+    }
+    .hidden { display: none; }
+    @media (max-width: 900px) {
+      .topbar { grid-template-columns: 1fr 1fr; }
+      .brand { grid-column: 1 / -1; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+      .loads { grid-template-columns: 1fr; }
+      .tabs { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="brand">
+        <div class="mark">T</div>
+        <div>
+          <div class="title">焊台拓展板 V0.3</div>
+          <div class="subtitle">三路负载控制 · 温度曲线 · 调试监视</div>
+        </div>
+      </div>
+      <input id="ip" placeholder="设备 IP">
+      <button id="connect" class="primary">连接</button>
+      <button id="disconnect">断开</button>
+    </section>
+
+    <section class="metrics">
+      <div class="metric"><div class="k">连接</div><div id="mConn" class="v bad">离线</div></div>
+      <div class="metric"><div class="k">模式</div><div id="mMode" class="v">手动</div></div>
+      <div class="metric"><div class="k">温度</div><div id="mTemp" class="v">--</div></div>
+      <div class="metric"><div class="k">下位机</div><div id="mLower" class="v warn">等待</div></div>
+      <div class="metric"><div class="k">网页</div><div id="mWeb" class="v">未连接</div></div>
+      <div class="metric"><div class="k">最近更新</div><div id="mUpdate" class="v">--</div></div>
+    </section>
+
+    <section class="tabs">
+      <button class="active" data-tab="dash">总览</button>
+      <button data-tab="ctrl">控制</button>
+      <button data-tab="diag">调试</button>
+      <button data-tab="logtab">日志</button>
+    </section>
+
+    <section id="dash" class="grid tab">
+      <div class="panel">
+        <h2>温度曲线</h2>
+        <canvas id="chart"></canvas>
+      </div>
+      <div class="panel">
+        <h2>负载状态</h2>
+        <div class="loads">
+          <div class="load"><div class="load-name">照明灯</div><div id="pLight" class="state-pill">OFF</div><div class="k">PB13 · 第一路</div></div>
+          <div class="load"><div class="load-name">排风扇</div><div id="pFan" class="state-pill">OFF</div><div class="k">PB12 · 第二路</div></div>
+          <div class="load"><div class="load-name">第三路</div><div id="pAux" class="state-pill">OFF</div><div class="k">PB14 · 预留</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ctrl" class="panel tab hidden">
+      <h2>手动控制</h2>
+      <div class="loads">
+        <div class="load"><div class="load-name">照明灯</div><div class="switch-row"><button data-target="light" data-value="1">打开</button><button data-target="light" data-value="0">关闭</button></div></div>
+        <div class="load"><div class="load-name">排风扇</div><div class="switch-row"><button data-target="fan" data-value="1">打开</button><button data-target="fan" data-value="0">关闭</button></div></div>
+        <div class="load"><div class="load-name">第三路</div><div class="switch-row"><button data-target="aux" data-value="1">打开</button><button data-target="aux" data-value="0">关闭</button></div></div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="loads">
+        <button data-target="mode" data-value="0">手动模式</button>
+        <button data-target="mode" data-value="1">自动模式</button>
+        <button id="allOff" class="danger">全部关闭</button>
+      </div>
+    </section>
+
+    <section id="diag" class="panel tab hidden">
+      <h2>调试状态</h2>
+      <div class="kv">
+        <div class="k">设备 IP</div><div id="dIp">--</div>
+        <div class="k">ESP 在线</div><div id="dEsp">--</div>
+        <div class="k">WebSocket</div><div id="dWs">--</div>
+        <div class="k">人体传感器</div><div id="dPresence">保留未启用</div>
+        <div class="k">运行时间</div><div id="dRun">--</div>
+        <div class="k">调试信息</div><div id="dDebug">--</div>
+      </div>
+    </section>
+
+    <section id="logtab" class="panel tab hidden">
+      <h2>运行日志</h2>
+      <div id="log"></div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      ip: localStorage.getItem("ext.ip") || "",
+      ws: null,
+      seq: 1,
+      last: null,
+      samples: [],
+    };
+
+    const $ = (id) => document.getElementById(id);
+    $("ip").value = state.ip;
+
+    function log(line) {
+      const text = `[${new Date().toLocaleTimeString()}] ${line}\n`;
+      $("log").textContent = text + $("log").textContent.slice(0, 6000);
+    }
+
+    function send(target, value) {
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        log("未连接，命令未发送");
+        return;
+      }
+      const seq = String(state.seq++);
+      state.ws.send(JSON.stringify({ type: "cmd", seq, target, value }));
+      log(`发送命令 seq=${seq} target=${target} value=${value}`);
+    }
+
+    function setPill(id, on) {
+      const el = $(id);
+      el.textContent = on ? "ON" : "OFF";
+      el.classList.toggle("on", !!on);
+    }
+
+    function relayOf(data, key) {
+      if (data && data.relay && typeof data.relay === "object" && !Array.isArray(data.relay)) return data.relay[key] ? 1 : 0;
+      if (Array.isArray(data.relay)) {
+        if (key === "light") return data.relay[2] ? 1 : 0;
+        if (key === "fan") return data.relay[1] ? 1 : 0;
+        if (key === "aux") return data.relay[3] ? 1 : 0;
+      }
+      return 0;
+    }
+
+    function drawChart() {
+      const c = $("chart");
+      const dpr = window.devicePixelRatio || 1;
+      const rect = c.getBoundingClientRect();
+      c.width = Math.floor(rect.width * dpr);
+      c.height = Math.floor(rect.height * dpr);
+      const ctx = c.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = rect.width, h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#d9e1ec";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        const y = 22 + i * ((h - 44) / 5);
+        ctx.beginPath();
+        ctx.moveTo(38, y);
+        ctx.lineTo(w - 12, y);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#667085";
+      ctx.font = "12px Segoe UI, Microsoft YaHei";
+      ctx.fillText("450", 8, 26);
+      ctx.fillText("0", 18, h - 20);
+      if (state.samples.length < 2) return;
+      ctx.strokeStyle = "#246bfe";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      state.samples.forEach((v, i) => {
+        const x = 40 + i * ((w - 56) / 79);
+        const y = h - 22 - Math.max(0, Math.min(450, v)) * ((h - 48) / 450);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function render(data) {
+      state.last = data;
+      const mode = data.mode === "AUTO" ? "自动" : "手动";
+      const temp = Number(data.temp);
+      const lower = !!data.lowerOnline;
+      const light = relayOf(data, "light");
+      const fan = relayOf(data, "fan");
+      const aux = relayOf(data, "aux");
+
+      $("mConn").textContent = "在线";
+      $("mConn").className = "v ok";
+      $("mMode").textContent = mode;
+      $("mMode").className = data.mode === "AUTO" ? "v warn" : "v";
+      $("mTemp").textContent = lower && temp >= 0 ? `${temp} °C` : "--";
+      $("mLower").textContent = lower ? "在线" : "离线";
+      $("mLower").className = lower ? "v ok" : "v warn";
+      $("mWeb").textContent = data.webOnline ? "已连接" : "未连接";
+      $("mUpdate").textContent = new Date().toLocaleTimeString();
+
+      setPill("pLight", light);
+      setPill("pFan", fan);
+      setPill("pAux", aux);
+
+      $("dIp").textContent = data.ip || state.ip || "--";
+      $("dEsp").textContent = data.espOnline ? "在线" : "离线";
+      $("dWs").textContent = data.webOnline ? "连接" : "断开";
+      $("dPresence").textContent = data.presence && data.presence.enabled ? (data.presence.detected ? "有人" : "无人") : "保留未启用";
+      $("dRun").textContent = data.runTimeMs ? `${Math.floor(data.runTimeMs / 1000)} s` : "--";
+      $("dDebug").textContent = data.debug || "--";
+
+      if (lower && temp >= 0) {
+        state.samples.push(temp);
+        if (state.samples.length > 80) state.samples.shift();
+        drawChart();
+      }
+    }
+
+    function connect() {
+      const ip = $("ip").value.trim();
+      if (!ip) return;
+      localStorage.setItem("ext.ip", ip);
+      state.ip = ip;
+      if (state.ws) state.ws.close();
+      const url = `ws://${ip}:81/`;
+      log(`连接 ${url}`);
+      state.ws = new WebSocket(url);
+      state.ws.onopen = () => {
+        log("WebSocket 已连接");
+        state.ws.send(JSON.stringify({ type: "get_state" }));
+      };
+      state.ws.onclose = () => {
+        $("mConn").textContent = "离线";
+        $("mConn").className = "v bad";
+        log("WebSocket 已断开");
+      };
+      state.ws.onerror = () => log("WebSocket 错误");
+      state.ws.onmessage = (ev) => {
+        log(ev.data);
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === "state") render(msg.data || {});
+          if (msg.type === "ack") log(msg.raw || "ACK");
+        } catch (e) {
+          log("无法解析消息");
+        }
+      };
+    }
+
+    document.querySelectorAll("[data-tab]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-tab]").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab").forEach(p => p.classList.add("hidden"));
+        btn.classList.add("active");
+        $(btn.dataset.tab).classList.remove("hidden");
+        drawChart();
+      });
+    });
+
+    document.querySelectorAll("[data-target]").forEach(btn => {
+      btn.addEventListener("click", () => send(btn.dataset.target, Number(btn.dataset.value)));
+    });
+    $("allOff").addEventListener("click", () => send("all", 0));
+    $("connect").addEventListener("click", connect);
+    $("disconnect").addEventListener("click", () => state.ws && state.ws.close());
+    window.addEventListener("resize", drawChart);
+    drawChart();
+  </script>
+</body>
+</html>
