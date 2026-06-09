@@ -8,6 +8,11 @@ static volatile uint8_t readIdx;
 static volatile uint8_t count;
 static volatile uint16_t buildIdx;
 static volatile uint8_t discard;
+static volatile uint32_t rxByteCount;
+static volatile uint32_t overflowCount;
+static volatile uint8_t recentBytes[LOWER_UART_RECENT_BYTES];
+static volatile uint8_t recentWriteIdx;
+static volatile uint8_t recentCount;
 
 static void QueuePushFromIrq(void)
 {
@@ -32,6 +37,7 @@ static void QueuePushFromIrq(void)
     else
     {
         readIdx = (uint8_t)((readIdx + 1U) % LOWER_UART_QUEUE_DEPTH);
+        overflowCount++;
     }
     buildIdx = 0U;
 }
@@ -45,13 +51,9 @@ void LowerUart_Init(void)
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-    gpio.GPIO_Pin = GPIO_Pin_10;
-    gpio.GPIO_Mode = GPIO_Mode_AF_PP;
-    gpio.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOB, &gpio);
-
     gpio.GPIO_Pin = GPIO_Pin_11;
     gpio.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &gpio);
 
     usart.USART_BaudRate = LOWER_UART_BAUD;
@@ -59,7 +61,7 @@ void LowerUart_Init(void)
     usart.USART_StopBits = USART_StopBits_1;
     usart.USART_Parity = USART_Parity_No;
     usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    usart.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    usart.USART_Mode = USART_Mode_Rx;
     USART_Init(USART3, &usart);
 
     nvic.NVIC_IRQChannel = USART3_IRQn;
@@ -72,22 +74,63 @@ void LowerUart_Init(void)
     USART_Cmd(USART3, ENABLE);
 }
 
-void LowerUart_SendString(const char *str)
+uint32_t LowerUart_GetRxByteCount(void)
 {
-    uint16_t guard;
+    uint32_t value;
 
-    while ((str != 0) && (*str != '\0'))
+    __disable_irq();
+    value = rxByteCount;
+    __enable_irq();
+    return value;
+}
+
+uint32_t LowerUart_GetOverflowCount(void)
+{
+    uint32_t value;
+
+    __disable_irq();
+    value = overflowCount;
+    __enable_irq();
+    return value;
+}
+
+void LowerUart_GetRecentHex(char *buf, uint16_t maxLen)
+{
+    static const char hex[] = "0123456789ABCDEF";
+    uint8_t bytes[LOWER_UART_RECENT_BYTES];
+    uint8_t countCopy;
+    uint8_t start;
+    uint8_t i;
+    uint16_t out = 0U;
+
+    if ((buf == 0) || (maxLen == 0U))
     {
-        guard = 0U;
-        while (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET)
-        {
-            if (++guard > 60000U)
-            {
-                return;
-            }
-        }
-        USART_SendData(USART3, (uint8_t)*str++);
+        return;
     }
+
+    __disable_irq();
+    countCopy = recentCount;
+    start = (uint8_t)((recentWriteIdx + LOWER_UART_RECENT_BYTES - countCopy) % LOWER_UART_RECENT_BYTES);
+    for (i = 0U; i < countCopy; i++)
+    {
+        bytes[i] = recentBytes[(uint8_t)((start + i) % LOWER_UART_RECENT_BYTES)];
+    }
+    __enable_irq();
+
+    for (i = 0U; i < countCopy; i++)
+    {
+        if ((out + 3U) >= maxLen)
+        {
+            break;
+        }
+        buf[out++] = hex[(bytes[i] >> 4) & 0x0FU];
+        buf[out++] = hex[bytes[i] & 0x0FU];
+        if (i + 1U < countCopy)
+        {
+            buf[out++] = ' ';
+        }
+    }
+    buf[out] = '\0';
 }
 
 uint8_t LowerUart_GetLine(char *buf, uint16_t maxLen)
@@ -130,10 +173,17 @@ void USART3_IRQHandler(void)
     {
         USART_ClearITPendingBit(USART3, USART_IT_RXNE);
         data = (uint8_t)USART_ReceiveData(USART3);
+        rxByteCount++;
+        recentBytes[recentWriteIdx] = data;
+        recentWriteIdx = (uint8_t)((recentWriteIdx + 1U) % LOWER_UART_RECENT_BYTES);
+        if (recentCount < LOWER_UART_RECENT_BYTES)
+        {
+            recentCount++;
+        }
 
         if (discard)
         {
-            if ((data == '\r') || (data == '\n'))
+            if (data == '\n')
             {
                 discard = 0U;
                 buildIdx = 0U;
@@ -141,7 +191,12 @@ void USART3_IRQHandler(void)
             return;
         }
 
-        if ((data == '\r') || (data == '\n'))
+        if (data == '\r')
+        {
+            return;
+        }
+
+        if (data == '\n')
         {
             if (buildIdx > 0U)
             {
@@ -156,6 +211,7 @@ void USART3_IRQHandler(void)
         {
             buildIdx = 0U;
             discard = 1U;
+            overflowCount++;
         }
     }
 }

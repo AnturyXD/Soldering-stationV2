@@ -371,7 +371,14 @@
       $("dWs").textContent = data.webOnline ? "连接" : "断开";
       $("dPresence").textContent = data.presence && data.presence.enabled ? (data.presence.detected ? "有人" : "无人") : "保留未启用";
       $("dRun").textContent = data.runTimeMs ? `${Math.floor(data.runTimeMs / 1000)} s` : "--";
-      $("dDebug").textContent = data.debug || "--";
+      if (data.lowerDiag) {
+        const d = data.lowerDiag;
+        $("dDebug").textContent =
+          `lower rx=${d.rxBytes || 0}, lines=${d.lines || 0}, valid=${d.valid || 0}, bad=${d.bad || 0}, ` +
+          `ovf=${d.overflow || 0}, err=${d.err || "--"}, raw=${d.raw || "--"}`;
+      } else {
+        $("dDebug").textContent = data.debug || "--";
+      }
 
       if (lower && temp >= 0) {
         state.samples.push(temp);

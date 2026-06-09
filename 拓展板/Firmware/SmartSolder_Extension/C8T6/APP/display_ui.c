@@ -285,31 +285,35 @@ static int16_t GetTargetTemp(const AppState_t *state)
 
 static uint8_t CalcPowerPercent(const AppState_t *state)
 {
-    int16_t target = GetTargetTemp(state);
-    int16_t diff;
-    int16_t power;
-
     if (!state->lowerOnline || (state->ironTemp < 0))
     {
         return 0U;
     }
 
-    diff = (int16_t)(target - state->ironTemp);
-    if (diff <= 0)
-    {
-        return 0U;
-    }
+    return (state->heaterPower <= 100U) ? state->heaterPower : 100U;
+}
 
-    power = (int16_t)(diff * 3);
-    if (power < 18)
+static const char *LowerModeText(char mode)
+{
+    switch (mode)
     {
-        power = 18;
+    case 'E':
+        return "ERROR";
+    case 'O':
+        return "OFF";
+    case 'S':
+        return "SLEEP";
+    case 'B':
+        return "BOOST";
+    case 'W':
+        return "READY";
+    case 'H':
+        return "HEATING";
+    case 'L':
+        return "HOLD";
+    default:
+        return "UNKNOWN";
     }
-    if (power > 99)
-    {
-        power = 99;
-    }
-    return (uint8_t)power;
 }
 
 static void DrawMainTemperature(const AppState_t *state)
@@ -359,13 +363,9 @@ static void DrawInfoRow(const AppState_t *state)
     {
         status = "OFFLINE";
     }
-    else if ((state->ironTemp >= 0) && (state->ironTemp < target - 3))
-    {
-        status = "HEATING";
-    }
     else
     {
-        status = "READY";
+        status = LowerModeText(state->lowerMode);
     }
 
     if (infoModeCache != (uint8_t)state->mode)

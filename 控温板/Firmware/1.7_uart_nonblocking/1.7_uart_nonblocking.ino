@@ -985,6 +985,7 @@ bool      isWorky     = true;
 bool      beepIfWorky = true;
 bool      TipIsPresent = true;
 bool      FlipState = false;
+
 // Timing variables
 uint32_t  sleepmillis;
 uint32_t  boostmillis;
@@ -1034,6 +1035,7 @@ static uint32_t serialReportLastMs;
 static uint8_t serialReportState;
 static uint16_t serialReportNumberValue;
 static uint16_t serialReportNumberDivisor;
+static bool serialReportTxActive;
 
 static void SerialReportInit() {
   UBRR0H = 0;
@@ -1045,6 +1047,8 @@ static void SerialReportInit() {
 
 static bool SerialReportTryWrite(char c) {
   if (!(UCSR0A & _BV(UDRE0))) return false;
+  UCSR0A |= _BV(TXC0);
+  serialReportTxActive = true;
   UDR0 = c;
   return true;
 }
@@ -1119,6 +1123,16 @@ static void SerialReportTask() {
     case 10: if (SerialReportTryWrite(SerialReportModeChar())) serialReportState++; break;
     case 11: if (SerialReportTryWrite('\n')) serialReportState = 0; break;
   }
+}
+
+static void SerialReportWaitTxCompleteBeforeSleep() {
+  if (!serialReportTxActive) return;
+  while (!(UCSR0A & _BV(TXC0))) {
+  }
+  serialReportTxActive = false;
+}
+#else
+static void SerialReportWaitTxCompleteBeforeSleep() {
 }
 #endif
 
@@ -2043,6 +2057,7 @@ uint16_t denoiseAnalog (byte port) {
   ADCSRA |= bit (ADEN) | bit (ADIF);    // enable ADC, turn off any pending interrupt
   if (port >= A0) port -= A0;           // set port and
   ADMUX = (0x0F & port) | bit(REFS0);   // reference to AVcc
+  SerialReportWaitTxCompleteBeforeSleep();
   set_sleep_mode (SLEEP_MODE_ADC);      // sleep during sample for noise reduction
   for (uint8_t i = 0; i < 32; i++) {    // get 32 readings
     sleep_mode();                       // go to sleep while taking ADC sample
@@ -2075,6 +2090,7 @@ double getChipTemp() {
   ADCSRA |= bit (ADEN) | bit (ADIF);    // enable ADC, turn off any pending interrupt
   ADMUX = bit (REFS1) | bit (REFS0) | bit (MUX3); // set reference and mux
   delay(10);                            // wait for voltages to settle
+  SerialReportWaitTxCompleteBeforeSleep();
   set_sleep_mode (SLEEP_MODE_ADC);      // sleep during sample for noise reduction
   for (uint8_t i = 0; i < 32; i++) {    // get 32 readings
     sleep_mode();                       // go to sleep while taking ADC sample
@@ -2093,6 +2109,7 @@ uint16_t getVCC() {
   // set Vcc measurement against 1.1V reference
   ADMUX = bit (REFS0) | bit (MUX3) | bit (MUX2) | bit (MUX1);
   delay(1);                             // wait for voltages to settle
+  SerialReportWaitTxCompleteBeforeSleep();
   set_sleep_mode (SLEEP_MODE_ADC);      // sleep during sample for noise reduction
   for (uint8_t i = 0; i < 16; i++) {    // get 16 readings
     sleep_mode();                       // go to sleep while taking ADC sample

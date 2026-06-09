@@ -26,14 +26,24 @@ typedef struct
     uint8_t lowerOnline;
     uint8_t presenceKnown;
     uint8_t presenceDetected;
+    uint8_t heaterPower;
     uint8_t load[LOAD_COUNT];
+    char lowerMode;
     int16_t ironTemp;
     int16_t setTemp;
     uint16_t inputMv;
     uint32_t runTimeMs;
+    uint32_t lastLowerAnyRxMs;
     uint32_t lastLowerRxMs;
+    uint32_t lowerRxBytes;
+    uint32_t lowerRxLines;
+    uint32_t lowerValidFrames;
+    uint32_t lowerInvalidFrames;
+    uint32_t lowerOverflowCount;
     uint32_t commandCount;
     char ip[16];
+    char lowerLastError[24];
+    char lowerLastRaw[64];
     char lastDebug[96];
 } AppState_t;
 

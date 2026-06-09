@@ -10,9 +10,12 @@ void AppState_Init(AppState_t *state)
 
     memset(state, 0, sizeof(*state));
     state->mode = APP_MODE_MANUAL;
+    state->lowerMode = 'O';
     state->ironTemp = -1;
     state->setTemp = 350;
     strcpy(state->ip, "0.0.0.0");
+    strcpy(state->lowerLastError, "NO_RX");
+    strcpy(state->lowerLastRaw, "");
     strcpy(state->lastDebug, "boot");
 }
 

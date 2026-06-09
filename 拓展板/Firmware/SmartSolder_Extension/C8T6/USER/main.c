@@ -43,9 +43,6 @@ static void App_AutoControlTask(void)
         return;
     }
 
-    app.presenceKnown = 1U;
-    app.presenceDetected = Presence_IsDetected();
-
     if (app.presenceDetected)
     {
         app.load[LOAD_LIGHT] = 1U;
@@ -56,6 +53,13 @@ static void App_AutoControlTask(void)
         app.load[LOAD_LIGHT] = 0U;
         app.load[LOAD_FAN] = 0U;
     }
+}
+
+static void App_PresenceTask(uint32_t nowMs)
+{
+    Presence_Task(nowMs);
+    app.presenceKnown = app.autoFeatureEnabled ? 1U : 0U;
+    app.presenceDetected = app.autoFeatureEnabled ? Presence_IsDetected() : 0U;
 }
 
 static void App_ProcessCommand(const EspCommand_t *cmd)
@@ -198,17 +202,28 @@ static void App_ReportTask(uint32_t nowMs)
     if ((nowMs - lastDebugReportMs) >= APP_DEBUG_REPORT_MS)
     {
         lastDebugReportMs = nowMs;
-        DebugUart_Printf("[APP] t=%lu mode=%s esp=%u web=%u lower=%u temp=%d load=%u,%u,%u ip=%s\r\n",
+        DebugUart_Printf("[APP] t=%lu mode=%s esp=%u web=%u lower=%u lowerMode=%c power=%u presence=%u temp=%d set=%d load=%u,%u,%u ip=%s lowerRx=%lu lines=%lu valid=%lu bad=%lu ovf=%lu err=%s raw=%s\r\n",
                          (unsigned long)nowMs,
                          AppMode_ToText(app.mode),
                          (unsigned int)app.espOnline,
                          (unsigned int)app.webOnline,
                          (unsigned int)app.lowerOnline,
+                         app.lowerMode,
+                         (unsigned int)app.heaterPower,
+                         (unsigned int)app.presenceDetected,
                          (int)app.ironTemp,
+                         (int)app.setTemp,
                          (unsigned int)app.load[LOAD_LIGHT],
                          (unsigned int)app.load[LOAD_FAN],
                          (unsigned int)app.load[LOAD_AUX],
-                         app.ip);
+                         app.ip,
+                         (unsigned long)app.lowerRxBytes,
+                         (unsigned long)app.lowerRxLines,
+                         (unsigned long)app.lowerValidFrames,
+                         (unsigned long)app.lowerInvalidFrames,
+                         (unsigned long)app.lowerOverflowCount,
+                         app.lowerLastError,
+                         app.lowerLastRaw);
     }
 }
 
@@ -250,6 +265,7 @@ int main(void)
         LowerLink_Task(&app, nowMs);
 
         App_CommandTask();
+        App_PresenceTask(nowMs);
         App_AutoControlTask();
         App_TempDemoTask(nowMs);
         App_RelayTask(nowMs);

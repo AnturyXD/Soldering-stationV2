@@ -32,6 +32,5 @@
 .\objects\lower_link.o: ..\APP\app_state.h
 .\objects\lower_link.o: ..\HARDWARE\BOARD\board_config.h
 .\objects\lower_link.o: ..\SYSTEM\lower_uart\lower_uart.h
-.\objects\lower_link.o: D:\data\keilMDK\ARM\ARMCC\Bin\..\include\ctype.h
 .\objects\lower_link.o: D:\data\keilMDK\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\lower_link.o: D:\data\keilMDK\ARM\ARMCC\Bin\..\include\string.h
