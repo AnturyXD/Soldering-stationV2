@@ -3,8 +3,8 @@
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 
-static const char *WIFI_SSID = "126";
-static const char *WIFI_PASS = "1234567890";
+static const char *WIFI_SSID = "StarCrane";
+static const char *WIFI_PASS = "147258369";
 
 static const uint32_t UART_BAUD = 115200;
 static const uint16_t HTTP_PORT = 80;

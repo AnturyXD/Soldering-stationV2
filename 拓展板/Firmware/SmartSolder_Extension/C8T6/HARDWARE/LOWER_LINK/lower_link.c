@@ -15,6 +15,10 @@ typedef struct
 static uint32_t lastValidRxMs;
 static uint32_t lastSeenRxBytes;
 static uint32_t lastSeenOverflow;
+static uint32_t lastSeenOverrun;
+static uint32_t lastSeenFrameError;
+static uint32_t lastSeenNoiseError;
+static uint32_t lastSeenParityError;
 
 static void CopyDebugText(char *dst, uint8_t dstLen, const char *src)
 {
@@ -92,6 +96,26 @@ static uint8_t IsValidMode(char mode)
     return (strchr("EOSBWHL", mode) != 0) ? 1U : 0U;
 }
 
+static uint8_t CountFields(const char *line)
+{
+    uint8_t fields = 1U;
+
+    if ((line == 0) || (line[0] == '\0'))
+    {
+        return 0U;
+    }
+
+    while (*line != '\0')
+    {
+        if (*line == ',')
+        {
+            fields++;
+        }
+        line++;
+    }
+    return fields;
+}
+
 static uint8_t ParseStatusFrame(const char *line, LowerStatusFrame_t *frame, const char **reason)
 {
     const char *cursor;
@@ -105,6 +129,11 @@ static uint8_t ParseStatusFrame(const char *line, LowerStatusFrame_t *frame, con
     if (strncmp(line, "$T,", 3) != 0)
     {
         *reason = "BAD_HEADER";
+        return 0U;
+    }
+    if (CountFields(line) != 5U)
+    {
+        *reason = "BAD_FIELDS";
         return 0U;
     }
 
@@ -168,6 +197,10 @@ void LowerLink_Init(void)
     lastValidRxMs = 0U;
     lastSeenRxBytes = 0U;
     lastSeenOverflow = 0U;
+    lastSeenOverrun = 0U;
+    lastSeenFrameError = 0U;
+    lastSeenNoiseError = 0U;
+    lastSeenParityError = 0U;
     LowerUart_Init();
 }
 
@@ -178,6 +211,10 @@ void LowerLink_Task(AppState_t *state, uint32_t nowMs)
     const char *reason = "UNKNOWN";
     uint32_t rxBytes = LowerUart_GetRxByteCount();
     uint32_t overflowCount = LowerUart_GetOverflowCount();
+    uint32_t overrunCount = LowerUart_GetOverrunCount();
+    uint32_t frameErrorCount = LowerUart_GetFrameErrorCount();
+    uint32_t noiseErrorCount = LowerUart_GetNoiseErrorCount();
+    uint32_t parityErrorCount = LowerUart_GetParityErrorCount();
     uint8_t processed = 0U;
 
     if (rxBytes != lastSeenRxBytes)
@@ -188,14 +225,40 @@ void LowerLink_Task(AppState_t *state, uint32_t nowMs)
 
         if ((state->lowerRxLines == 0U) && (state->lowerValidFrames == 0U))
         {
-            SetLowerRxActivityError(state, "RX_NO_LF");
+            SetLowerRxActivityError(state, "RX_NO_FRAME");
         }
     }
     state->lowerOverflowCount = overflowCount;
+    state->lowerOverrunCount = overrunCount;
+    state->lowerFrameErrorCount = frameErrorCount;
+    state->lowerNoiseErrorCount = noiseErrorCount;
+    state->lowerParityErrorCount = parityErrorCount;
+
+    if (overrunCount != lastSeenOverrun)
+    {
+        lastSeenOverrun = overrunCount;
+        SetLowerRxActivityError(state, "UART_ORE");
+    }
+    if (frameErrorCount != lastSeenFrameError)
+    {
+        lastSeenFrameError = frameErrorCount;
+        SetLowerRxActivityError(state, "UART_FE");
+    }
+    if (noiseErrorCount != lastSeenNoiseError)
+    {
+        lastSeenNoiseError = noiseErrorCount;
+        SetLowerRxActivityError(state, "UART_NE");
+    }
+    if (parityErrorCount != lastSeenParityError)
+    {
+        lastSeenParityError = parityErrorCount;
+        SetLowerRxActivityError(state, "UART_PE");
+    }
+
     if (overflowCount != lastSeenOverflow)
     {
         lastSeenOverflow = overflowCount;
-        SetLowerRxActivityError(state, "RX_OVERFLOW");
+        SetLowerRxActivityError(state, "RX_DROP_FRAME");
     }
 
     while ((processed < 8U) && LowerUart_GetLine(line, sizeof(line)))

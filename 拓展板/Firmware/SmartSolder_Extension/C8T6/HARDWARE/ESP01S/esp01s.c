@@ -128,7 +128,7 @@ void ESP01S_Task(AppState_t *state, uint32_t nowMs)
 
 void ESP01S_SendState(const AppState_t *state)
 {
-    char buf[680];
+    static char buf[840];
 
     /* 状态行保持单行JSON，ESP收到后原样推送到离线HTML页面。 */
     snprintf(buf,
@@ -136,7 +136,8 @@ void ESP01S_SendState(const AppState_t *state)
              "STAT {\"fw\":\"%s\",\"mode\":\"%s\",\"espOnline\":%u,\"webOnline\":%u,"
              "\"lowerOnline\":%u,\"temp\":%d,\"setTemp\":%d,\"power\":%u,\"lowerMode\":\"%c\",\"vin\":%u,"
              "\"lowerDiag\":{\"rxBytes\":%lu,\"lines\":%lu,\"valid\":%lu,\"bad\":%lu,"
-             "\"overflow\":%lu,\"lastAnyMs\":%lu,\"lastValidMs\":%lu,\"err\":\"%s\",\"raw\":\"%s\"},"
+             "\"overflow\":%lu,\"ore\":%lu,\"fe\":%lu,\"ne\":%lu,\"pe\":%lu,"
+             "\"lastAnyMs\":%lu,\"lastValidMs\":%lu,\"err\":\"%s\",\"raw\":\"%s\"},"
              "\"presence\":{\"enabled\":%u,\"detected\":%u},"
              "\"relay\":{\"light\":%u,\"fan\":%u,\"aux\":%u},"
              "\"runTimeMs\":%lu,\"ip\":\"%s\",\"debug\":\"%s\"}\r\n",
@@ -155,6 +156,10 @@ void ESP01S_SendState(const AppState_t *state)
              (unsigned long)state->lowerValidFrames,
              (unsigned long)state->lowerInvalidFrames,
              (unsigned long)state->lowerOverflowCount,
+             (unsigned long)state->lowerOverrunCount,
+             (unsigned long)state->lowerFrameErrorCount,
+             (unsigned long)state->lowerNoiseErrorCount,
+             (unsigned long)state->lowerParityErrorCount,
              (unsigned long)state->lastLowerAnyRxMs,
              (unsigned long)state->lastLowerRxMs,
              state->lowerLastError,

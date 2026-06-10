@@ -9,7 +9,7 @@ static volatile uint8_t count;
 static volatile uint16_t buildIdx;
 static volatile uint8_t discard;
 
-#define ESP_TX_BUF_SIZE 768U
+#define ESP_TX_BUF_SIZE 1024U
 static volatile uint16_t txHead;
 static volatile uint16_t txTail;
 static uint8_t txBuf[ESP_TX_BUF_SIZE];
@@ -68,8 +68,8 @@ void EspUart_Init(void)
     USART_Init(USART2, &usart);
 
     nvic.NVIC_IRQChannel = USART2_IRQn;
-    nvic.NVIC_IRQChannelPreemptionPriority = 0;
-    nvic.NVIC_IRQChannelSubPriority = 1;
+    nvic.NVIC_IRQChannelPreemptionPriority = 1;
+    nvic.NVIC_IRQChannelSubPriority = 0;
     nvic.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic);
 

@@ -40,6 +40,10 @@ typedef struct
     uint32_t lowerValidFrames;
     uint32_t lowerInvalidFrames;
     uint32_t lowerOverflowCount;
+    uint32_t lowerOverrunCount;
+    uint32_t lowerFrameErrorCount;
+    uint32_t lowerNoiseErrorCount;
+    uint32_t lowerParityErrorCount;
     uint32_t commandCount;
     char ip[16];
     char lowerLastError[24];

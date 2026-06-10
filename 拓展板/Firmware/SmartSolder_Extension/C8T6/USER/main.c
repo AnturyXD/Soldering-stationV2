@@ -202,7 +202,7 @@ static void App_ReportTask(uint32_t nowMs)
     if ((nowMs - lastDebugReportMs) >= APP_DEBUG_REPORT_MS)
     {
         lastDebugReportMs = nowMs;
-        DebugUart_Printf("[APP] t=%lu mode=%s esp=%u web=%u lower=%u lowerMode=%c power=%u presence=%u temp=%d set=%d load=%u,%u,%u ip=%s lowerRx=%lu lines=%lu valid=%lu bad=%lu ovf=%lu err=%s raw=%s\r\n",
+        DebugUart_Printf("[APP] t=%lu mode=%s esp=%u web=%u lower=%u lowerMode=%c power=%u presence=%u temp=%d set=%d load=%u,%u,%u ip=%s lowerRx=%lu lines=%lu valid=%lu bad=%lu ovf=%lu ore=%lu fe=%lu ne=%lu pe=%lu err=%s raw=%s\r\n",
                          (unsigned long)nowMs,
                          AppMode_ToText(app.mode),
                          (unsigned int)app.espOnline,
@@ -222,6 +222,10 @@ static void App_ReportTask(uint32_t nowMs)
                          (unsigned long)app.lowerValidFrames,
                          (unsigned long)app.lowerInvalidFrames,
                          (unsigned long)app.lowerOverflowCount,
+                         (unsigned long)app.lowerOverrunCount,
+                         (unsigned long)app.lowerFrameErrorCount,
+                         (unsigned long)app.lowerNoiseErrorCount,
+                         (unsigned long)app.lowerParityErrorCount,
                          app.lowerLastError,
                          app.lowerLastRaw);
     }

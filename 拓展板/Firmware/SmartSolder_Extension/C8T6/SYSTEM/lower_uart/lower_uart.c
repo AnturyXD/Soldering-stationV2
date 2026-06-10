@@ -7,12 +7,21 @@ static volatile uint8_t writeIdx;
 static volatile uint8_t readIdx;
 static volatile uint8_t count;
 static volatile uint16_t buildIdx;
-static volatile uint8_t discard;
+static volatile uint8_t frameActive;
 static volatile uint32_t rxByteCount;
 static volatile uint32_t overflowCount;
+static volatile uint32_t overrunCount;
+static volatile uint32_t frameErrorCount;
+static volatile uint32_t noiseErrorCount;
+static volatile uint32_t parityErrorCount;
 static volatile uint8_t recentBytes[LOWER_UART_RECENT_BYTES];
 static volatile uint8_t recentWriteIdx;
 static volatile uint8_t recentCount;
+
+static uint8_t IsFrameChar(uint8_t data)
+{
+    return ((data >= ' ') && (data <= '~')) ? 1U : 0U;
+}
 
 static void QueuePushFromIrq(void)
 {
@@ -52,7 +61,10 @@ void LowerUart_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
     gpio.GPIO_Pin = GPIO_Pin_11;
-    gpio.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    /* PB11 是下位机状态串口输入。使用上拉输入可以让空闲电平更稳定，
+     * 减少复位、插拔或分压点高阻时的误触发。
+     */
+    gpio.GPIO_Mode = GPIO_Mode_IPU;
     gpio.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &gpio);
 
@@ -66,7 +78,7 @@ void LowerUart_Init(void)
 
     nvic.NVIC_IRQChannel = USART3_IRQn;
     nvic.NVIC_IRQChannelPreemptionPriority = 0;
-    nvic.NVIC_IRQChannelSubPriority = 2;
+    nvic.NVIC_IRQChannelSubPriority = 0;
     nvic.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic);
 
@@ -90,6 +102,46 @@ uint32_t LowerUart_GetOverflowCount(void)
 
     __disable_irq();
     value = overflowCount;
+    __enable_irq();
+    return value;
+}
+
+uint32_t LowerUart_GetOverrunCount(void)
+{
+    uint32_t value;
+
+    __disable_irq();
+    value = overrunCount;
+    __enable_irq();
+    return value;
+}
+
+uint32_t LowerUart_GetFrameErrorCount(void)
+{
+    uint32_t value;
+
+    __disable_irq();
+    value = frameErrorCount;
+    __enable_irq();
+    return value;
+}
+
+uint32_t LowerUart_GetNoiseErrorCount(void)
+{
+    uint32_t value;
+
+    __disable_irq();
+    value = noiseErrorCount;
+    __enable_irq();
+    return value;
+}
+
+uint32_t LowerUart_GetParityErrorCount(void)
+{
+    uint32_t value;
+
+    __disable_irq();
+    value = parityErrorCount;
     __enable_irq();
     return value;
 }
@@ -167,50 +219,90 @@ uint8_t LowerUart_GetLine(char *buf, uint16_t maxLen)
 
 void USART3_IRQHandler(void)
 {
+    uint16_t status;
     uint8_t data;
+    uint8_t hasRx;
+    uint8_t hasHwError;
 
-    if (USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
+    status = USART3->SR;
+    hasRx = ((status & USART_SR_RXNE) != 0U) ? 1U : 0U;
+    hasHwError = ((status & (USART_SR_ORE | USART_SR_FE | USART_SR_NE | USART_SR_PE)) != 0U) ? 1U : 0U;
+
+    if (hasRx || hasHwError)
     {
-        USART_ClearITPendingBit(USART3, USART_IT_RXNE);
-        data = (uint8_t)USART_ReceiveData(USART3);
-        rxByteCount++;
-        recentBytes[recentWriteIdx] = data;
-        recentWriteIdx = (uint8_t)((recentWriteIdx + 1U) % LOWER_UART_RECENT_BYTES);
-        if (recentCount < LOWER_UART_RECENT_BYTES)
+        data = (uint8_t)USART3->DR;
+
+        if (hasRx)
         {
-            recentCount++;
+            rxByteCount++;
+            recentBytes[recentWriteIdx] = data;
+            recentWriteIdx = (uint8_t)((recentWriteIdx + 1U) % LOWER_UART_RECENT_BYTES);
+            if (recentCount < LOWER_UART_RECENT_BYTES)
+            {
+                recentCount++;
+            }
         }
 
-        if (discard)
+        if ((status & USART_SR_ORE) != 0U)
         {
-            if (data == '\n')
-            {
-                discard = 0U;
-                buildIdx = 0U;
-            }
+            overrunCount++;
+        }
+        if ((status & USART_SR_FE) != 0U)
+        {
+            frameErrorCount++;
+        }
+        if ((status & USART_SR_NE) != 0U)
+        {
+            noiseErrorCount++;
+        }
+        if ((status & USART_SR_PE) != 0U)
+        {
+            parityErrorCount++;
+        }
+
+        if (hasHwError)
+        {
+            /* USART硬件已经报告该字节异常，当前帧不可信，重新等待 '$' 同步。 */
+            frameActive = 0U;
+            buildIdx = 0U;
             return;
         }
 
-        if (data == '\r')
+        /* 下位机协议使用 '$' 起帧；未同步前的噪声字节全部忽略。 */
+        if (data == '$')
+        {
+            frameActive = 1U;
+            buildIdx = 0U;
+            build[buildIdx++] = (char)data;
+            return;
+        }
+
+        if (!frameActive)
         {
             return;
         }
 
         if (data == '\n')
         {
-            if (buildIdx > 0U)
-            {
-                QueuePushFromIrq();
-            }
+            QueuePushFromIrq();
+            frameActive = 0U;
         }
-        else if (buildIdx < (LOWER_UART_LINE_MAX - 1U))
+        else if (!IsFrameChar(data))
+        {
+            /* 帧内出现非 ASCII 可打印字符，说明本帧已经损坏，直接丢弃等待下一个 '$'。 */
+            frameActive = 0U;
+            buildIdx = 0U;
+            overflowCount++;
+        }
+        else if (buildIdx < (LOWER_UART_FRAME_MAX - 1U))
         {
             build[buildIdx++] = (char)data;
         }
         else
         {
+            /* 最大帧长 32 字节，包含结尾 LF；超长帧不进入解析层。 */
+            frameActive = 0U;
             buildIdx = 0U;
-            discard = 1U;
             overflowCount++;
         }
     }
