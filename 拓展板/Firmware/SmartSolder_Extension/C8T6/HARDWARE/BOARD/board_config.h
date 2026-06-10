@@ -3,7 +3,7 @@
 
 #include "stm32f10x.h"
 
-#define FW_VERSION_TEXT               "V0.3"
+#define FW_VERSION_TEXT               "V1.0"
 
 #define APP_STATUS_REPORT_MS          500UL
 #define APP_DEBUG_REPORT_MS           1000UL

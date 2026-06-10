@@ -31,7 +31,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
 I (..\SYSTEM\delay\delay.h)(0x681483F4)
 I (..\SYSTEM\timer\timer.h)(0x6A206065)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 I (..\HARDWARE\BOARD\board_io.h)(0x6A206342)
 I (..\SYSTEM\debug_uart\debug_uart.h)(0x6A2060A8)
 I (D:\data\keilMDK\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
@@ -293,7 +293,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
 I (D:\data\keilMDK\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 I (D:\data\keilMDK\ARM\ARMCC\include\stdarg.h)(0x599ECD2A)
 F (..\SYSTEM\esp_uart\esp_uart.c)(0x6A2928EA)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM -I ..\SYSTEM\delay -I ..\SYSTEM\timer -I ..\SYSTEM\debug_uart -I ..\SYSTEM\esp_uart -I ..\SYSTEM\lower_uart -I ..\HARDWARE\BOARD -I ..\HARDWARE\RELAY -I ..\HARDWARE\PRESENCE -I ..\HARDWARE\ESP01S -I ..\HARDWARE\LOWER_LINK -I ..\HARDWARE\ST7789 -I ..\APP-ID:\data\keilMDK\Packs\Keil\STM32F1xx_DFP\2.4.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o .\objects\esp_uart.o --omf_browse .\objects\esp_uart.crf --depend .\objects\esp_uart.d)
 I (..\SYSTEM\esp_uart\esp_uart.h)(0x6A20610C)
@@ -325,7 +325,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_tim.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 F (..\SYSTEM\lower_uart\lower_uart.c)(0x6A292774)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM -I ..\SYSTEM\delay -I ..\SYSTEM\timer -I ..\SYSTEM\debug_uart -I ..\SYSTEM\esp_uart -I ..\SYSTEM\lower_uart -I ..\HARDWARE\BOARD -I ..\HARDWARE\RELAY -I ..\HARDWARE\PRESENCE -I ..\HARDWARE\ESP01S -I ..\HARDWARE\LOWER_LINK -I ..\HARDWARE\ST7789 -I ..\APP-ID:\data\keilMDK\Packs\Keil\STM32F1xx_DFP\2.4.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o .\objects\lower_uart.o --omf_browse .\objects\lower_uart.crf --depend .\objects\lower_uart.d)
 I (..\SYSTEM\lower_uart\lower_uart.h)(0x6A292347)
 I (..\USER\stm32f10x.h)(0x681483F4)
@@ -356,7 +356,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_tim.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 F (..\SYSTEM\sys.c)(0x681483F4)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM -I ..\SYSTEM\delay -I ..\SYSTEM\timer -I ..\SYSTEM\debug_uart -I ..\SYSTEM\esp_uart -I ..\SYSTEM\lower_uart -I ..\HARDWARE\BOARD -I ..\HARDWARE\RELAY -I ..\HARDWARE\PRESENCE -I ..\HARDWARE\ESP01S -I ..\HARDWARE\LOWER_LINK -I ..\HARDWARE\ST7789 -I ..\APP-ID:\data\keilMDK\Packs\Keil\STM32F1xx_DFP\2.4.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o .\objects\sys.o --omf_browse .\objects\sys.crf --depend .\objects\sys.d)
 I (..\SYSTEM\sys.h)(0x681483F4)
 I (..\USER\stm32f10x.h)(0x681483F4)
@@ -448,7 +448,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
 I (..\APP\app_state.h)(0x6A2926B3)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 F (..\HARDWARE\PRESENCE\presence.c)(0x6A267063)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM -I ..\SYSTEM\delay -I ..\SYSTEM\timer -I ..\SYSTEM\debug_uart -I ..\SYSTEM\esp_uart -I ..\SYSTEM\lower_uart -I ..\HARDWARE\BOARD -I ..\HARDWARE\RELAY -I ..\HARDWARE\PRESENCE -I ..\HARDWARE\ESP01S -I ..\HARDWARE\LOWER_LINK -I ..\HARDWARE\ST7789 -I ..\APP-ID:\data\keilMDK\Packs\Keil\STM32F1xx_DFP\2.4.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o .\objects\presence.o --omf_browse .\objects\presence.crf --depend .\objects\presence.d)
 I (..\HARDWARE\PRESENCE\presence.h)(0x6A2666A6)
 I (..\USER\stm32f10x.h)(0x681483F4)
@@ -479,7 +479,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_tim.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 F (..\HARDWARE\ESP01S\esp01s.c)(0x6A292A22)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM -I ..\SYSTEM\delay -I ..\SYSTEM\timer -I ..\SYSTEM\debug_uart -I ..\SYSTEM\esp_uart -I ..\SYSTEM\lower_uart -I ..\HARDWARE\BOARD -I ..\HARDWARE\RELAY -I ..\HARDWARE\PRESENCE -I ..\HARDWARE\ESP01S -I ..\HARDWARE\LOWER_LINK -I ..\HARDWARE\ST7789 -I ..\APP-ID:\data\keilMDK\Packs\Keil\STM32F1xx_DFP\2.4.1\Device\Include-D__UVISION_VERSION="543" -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o .\objects\esp01s.o --omf_browse .\objects\esp01s.crf --depend .\objects\esp01s.d)
 I (..\HARDWARE\ESP01S\esp01s.h)(0x6A206182)
 I (..\USER\stm32f10x.h)(0x681483F4)
@@ -511,7 +511,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
 I (..\APP\app_state.h)(0x6A2926B3)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 I (..\SYSTEM\debug_uart\debug_uart.h)(0x6A2060A8)
 I (D:\data\keilMDK\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
 I (..\SYSTEM\esp_uart\esp_uart.h)(0x6A20610C)
@@ -548,7 +548,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x681483F2)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x681483F2)
 I (..\APP\app_state.h)(0x6A2926B3)
-I (..\HARDWARE\BOARD\board_config.h)(0x6A26772E)
+I (..\HARDWARE\BOARD\board_config.h)(0x6A295EB6)
 I (..\SYSTEM\lower_uart\lower_uart.h)(0x6A292347)
 I (D:\data\keilMDK\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
 I (D:\data\keilMDK\ARM\ARMCC\include\string.h)(0x599ECD2C)
