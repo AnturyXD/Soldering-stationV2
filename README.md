@@ -7,7 +7,7 @@
 - 控温板：ATmega328P 主控，负责 T12 烙铁头温度采样、PID 控温、OLED 显示、旋钮交互和焊台状态串口上报。
 - 拓展板：STM32F103C8T6 主控，负责读取控温板状态、驱动三路继电器、TFT 彩屏显示、ESP-01S WebSocket 桥接和网页上位机控制。
 
-> 图片占位：整机效果图建议放在 `docs/images/device-overview.jpg`。
+![控温板与拓展板总览](docs/images/boards-overview.jpg)
 
 ## 快速复刻路线
 
@@ -32,21 +32,22 @@ docs/images/
 
 | 图片内容 | 推荐文件名 |
 |---|---|
-| 整机效果图 | `device-overview.jpg` |
+| 整机效果图 | `solder-station-wiring-overview.jpg` / `integration-test-setup.jpg` |
 | 系统架构图 | `system-architecture.png` |
-| 控温板正反面 | `control-board-front.jpg` / `control-board-back.jpg` |
+| 控温板正面 | `control-board-front.jpg` |
+| 控温面板 | `control-panel-front.jpg` / `control-panel-assembled.jpg` |
 | 拓展板正反面 | `extension-board-front.jpg` / `extension-board-back.jpg` |
-| 控温板 ISP 接线 | `atmega-isp-wiring.jpg` |
+| 控温板 ISP 接线 | `usbasp-programmer-connected.jpg` |
 | STM32 SWD 接线 | `stm32-swd-wiring.jpg` |
 | ESP-01S 烧录接线 | `esp8266-flash-wiring.jpg` |
-| 24 V/5 V/3.3 V 测试点 | `power-test-points.jpg` |
+| 电源和接线 | `power-switch-module.jpg` / `power-cable.jpg` |
 | TFT 显示效果 | `tft-ui.jpg` |
 | 网页上位机界面 | `web-ui.png` |
 
 插图语法示例：
 
 ```md
-![控温板 ISP 接线](docs/images/atmega-isp-wiring.jpg)
+![USBasp 接线状态](docs/images/usbasp-programmer-connected.jpg)
 ```
 
 ## 系统架构
@@ -143,7 +144,11 @@ TFT 使用 ST7789 240x240 彩屏，界面采用深色仪表盘风格，显示在
 | `控温板/Hardware/BOM_T12焊台温控_智能焊台控制板_2026-06-07.xlsx` | 控温板 BOM |
 | `控温板/Hardware/Gerber_pcb_copy_2026-06-07.zip` | 控温板 Gerber |
 
-> 图片占位：控温板正反面照片建议放到 `docs/images/control-board-front.jpg` 和 `docs/images/control-board-back.jpg`。
+![控温板正面](docs/images/control-board-front.jpg)
+
+![控温板电源区域](docs/images/control-board-power-section.jpg)
+
+![控温面板装配](docs/images/control-panel-assembled.jpg)
 
 ### 拓展板硬件
 
@@ -153,7 +158,9 @@ TFT 使用 ST7789 240x240 彩屏，界面采用深色仪表盘风格，显示在
 | `拓展板/Hardware/BOM_Board1_Schematic1_2026-06-07.xlsx` | 拓展板 BOM |
 | `拓展板/Hardware/Gerber_PCB1_2026-06-07.zip` | 拓展板 Gerber |
 
-> 图片占位：拓展板正反面照片建议放到 `docs/images/extension-board-front.jpg` 和 `docs/images/extension-board-back.jpg`。
+![拓展板正面](docs/images/extension-board-front.jpg)
+
+![拓展板背面](docs/images/extension-board-back.jpg)
 
 ## 装配与首次上电
 
@@ -176,7 +183,13 @@ TFT 使用 ST7789 240x240 彩屏，界面采用深色仪表盘风格，显示在
 5. 接入 ESP-01S，确认网页能连接。
 6. 最后接入继电器实际负载。
 
-> 图片占位：电源测试点照片建议放到 `docs/images/power-test-points.jpg`。
+![电源开关模块](docs/images/power-switch-module.jpg)
+
+![电源线](docs/images/power-cable.jpg)
+
+![T12 手柄与烙铁头](docs/images/t12-tip-and-handle.jpg)
+
+![T12 手柄内部接线](docs/images/t12-handle-internal-1.jpg)
 
 ## 控温板固件
 
@@ -238,7 +251,9 @@ USBasp 接线：
 | VCC | 5 V |
 | GND | GND |
 
-> 图片占位：控温板 ISP 接线照片建议放到 `docs/images/atmega-isp-wiring.jpg`。
+![USBasp 下载器](docs/images/usbasp-programmer-front.jpg)
+
+![USBasp 接线状态](docs/images/usbasp-programmer-connected.jpg)
 
 烧录正式固件：
 
@@ -417,6 +432,8 @@ ATmega GND ------------------------ STM32 GND
 
 该分压将 ATmega 5 V UART 高电平转换到约 3.3 V。若沿用早期 `10k/20k` 分压也能得到约 3.33 V，但驱动能力更弱；V1.0 推荐 `5.1k/10k`。
 
+![控温板串口接线细节](docs/images/control-board-uart-wiring.jpg)
+
 注意：
 
 - PB11 不建议直接承受 5 V UART。虽然 STM32F103 的部分 IO 是 5 V tolerant，但复用模拟、上拉、输入保护和具体封装条件容易引入风险，分压更稳。
@@ -532,7 +549,9 @@ TFT 应显示：
 
 网页应显示同样核心状态，并附带串口和 WebSocket 调试信息。
 
-> 图片占位：TFT 显示效果建议放到 `docs/images/tft-ui.jpg`。
+![拓展板联调场景](docs/images/extension-board-test-setup.jpg)
+
+![系统联调场景](docs/images/integration-test-setup.jpg)
 
 ### 4. 验证继电器
 
@@ -545,6 +564,10 @@ V1.0 继电器定义：
 | R3 | PB14 | 预留负载 | 高电平有效 |
 
 测试实际负载前，建议先用万用表或小功率假负载确认动作逻辑。
+
+![双风扇模块](docs/images/dual-fan-module.jpg)
+
+![焊台接线总览](docs/images/solder-station-wiring-overview.jpg)
 
 ## 常见问题
 
