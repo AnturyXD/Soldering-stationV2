@@ -3,302 +3,1068 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>焊台拓展板 V0.3</title>
+  <title>智能焊台控制台 V2.1</title>
   <style>
     :root {
-      --bg: #f4f7fb;
-      --panel: #ffffff;
-      --panel2: #f8fafc;
-      --text: #172033;
-      --muted: #667085;
-      --line: #d9e1ec;
-      --green: #12805c;
-      --red: #c2413b;
-      --blue: #246bfe;
-      --amber: #b76e00;
-      --cyan: #008ea8;
-      --ink: #101828;
+      color-scheme: dark;
+      --bg: #0b0d0f;
+      --surface: #121518;
+      --surface-2: #171b1f;
+      --surface-3: #1e2328;
+      --line: #2b3238;
+      --line-strong: #3a444d;
+      --text: #f2f5f7;
+      --muted: #8f9ca6;
+      --cyan: #38c8e8;
+      --cyan-dim: #173c45;
+      --green: #42cf78;
+      --green-dim: #163d29;
+      --orange: #ff9b42;
+      --orange-dim: #4a2c14;
+      --red: #ff625c;
+      --red-dim: #4a1f20;
+      --shadow: 0 16px 40px rgba(0, 0, 0, .28);
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
+      min-width: 320px;
+      overflow-x: hidden;
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
     }
+
+    button, input {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button {
+      color: inherit;
+      cursor: pointer;
+    }
+
+    button:focus-visible, input:focus-visible, summary:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
     .app {
-      max-width: 1180px;
+      width: min(1440px, 100%);
+      min-width: 0;
       margin: 0 auto;
-      padding: 14px;
+      padding: 16px;
       display: grid;
       gap: 12px;
     }
-    .topbar, .metrics, .panel, .tabs {
-      background: var(--panel);
+
+    .topbar {
+      min-height: 68px;
       border: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto minmax(300px, 430px);
+      align-items: center;
+      gap: 16px;
+      padding: 12px 14px;
       border-radius: 8px;
     }
-    .topbar {
-      display: grid;
-      grid-template-columns: 1fr 150px 92px 92px;
-      gap: 8px;
-      padding: 10px;
-      align-items: center;
-    }
+
     .brand {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      background: #090a0b;
+      color: var(--orange);
+      border-radius: 6px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 750;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .status-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .status-item {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .status-item strong {
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 0 0 rgba(143, 156, 166, 0);
+      transition: background .25s ease, box-shadow .25s ease;
+    }
+
+    .status-dot.online {
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(66, 207, 120, .12);
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+
+    .status-dot.warn {
+      background: var(--orange);
+      box-shadow: 0 0 0 4px rgba(255, 155, 66, .12);
+    }
+
+    .connection {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 76px 40px;
+      gap: 7px;
+    }
+
+    input {
+      width: 100%;
+      height: 38px;
+      min-width: 0;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      background: #0d1012;
+      color: var(--text);
+      border-radius: 6px;
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    input:hover, input:focus { border-color: var(--line-strong); }
+
+    .icon-button, .button {
+      height: 38px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      border-radius: 6px;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease, color .16s ease;
+    }
+
+    .icon-button {
+      width: 40px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .button {
+      padding: 0 13px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .button:hover, .icon-button:hover {
+      border-color: var(--line-strong);
+      background: var(--surface-3);
+    }
+
+    .button:active, .icon-button:active { transform: translateY(1px); }
+
+    .button.primary {
+      color: #061014;
+      background: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .button.danger {
+      color: var(--red);
+      border-color: #663331;
+      background: var(--red-dim);
+    }
+
+    .button:disabled, .icon-button:disabled {
+      cursor: not-allowed;
+      opacity: .38;
+      transform: none;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(340px, .55fr);
+      gap: 12px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    .main-column, .control-column {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .panel {
+      min-width: 0;
+      max-width: 100%;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      min-height: 46px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .panel-note {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .temperature-panel {
+      display: grid;
+      grid-template-columns: minmax(280px, .85fr) minmax(320px, 1.15fr);
+      min-height: 266px;
+    }
+
+    .temperature-main {
+      position: relative;
+      min-width: 0;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    .temperature-main::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--orange);
+      transform: scaleY(.16);
+      transform-origin: top;
+      transition: transform .45s ease, background .25s ease;
+    }
+
+    .temperature-main.heating::before { transform: scaleY(1); }
+    .temperature-main.offline::before { background: var(--red); transform: scaleY(1); }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .live-label {
+      color: var(--orange);
+      transition: color .2s ease;
+    }
+
+    .temperature-value {
+      min-height: 116px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin: 4px 0;
+      white-space: nowrap;
+    }
+
+    .temperature-number {
+      font-size: clamp(70px, 9vw, 126px);
+      line-height: .88;
+      font-weight: 780;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      transition: color .25s ease, transform .25s ease, opacity .25s ease;
+    }
+
+    .temperature-number.updated {
+      animation: dataIn .38s ease;
+    }
+
+    .temperature-unit {
+      color: var(--muted);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .temperature-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mini-stat {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      border-radius: 6px;
+    }
+
+    .mini-label {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .mini-value {
+      margin-top: 5px;
+      font-size: 15px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chart-wrap {
+      min-width: 0;
+      min-height: 266px;
+      padding: 14px 14px 10px;
+      display: grid;
+      grid-template-rows: auto minmax(190px, 1fr);
+      gap: 8px;
+    }
+
+    .chart-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 10px;
+      min-width: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-line {
+      width: 18px;
+      height: 2px;
+      background: var(--cyan);
+    }
+
+    .legend-line.target {
+      height: 0;
+      border-top: 1px dashed var(--orange);
+      background: transparent;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      min-height: 190px;
+      display: block;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-top: 1px solid var(--line);
+    }
+
+    .summary-item {
+      min-width: 0;
+      padding: 12px 14px;
+      border-right: 1px solid var(--line);
+    }
+
+    .summary-item:last-child { border-right: 0; }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .summary-value {
+      margin-top: 5px;
+      font-size: 15px;
+      font-weight: 750;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color .2s ease;
+    }
+
+    .summary-value.ok { color: var(--green); }
+    .summary-value.warn { color: var(--orange); }
+    .summary-value.bad { color: var(--red); }
+
+    .control-body {
+      padding: 13px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .mode-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      background: #0d1012;
+      border-radius: 7px;
+    }
+
+    .mode-button {
+      height: 38px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 5px;
+      font-weight: 750;
+      transition: background .2s ease, color .2s ease, border-color .2s ease, transform .16s ease;
+    }
+
+    .mode-button:hover { color: var(--text); }
+    .mode-button:active { transform: translateY(1px); }
+
+    .mode-button.active {
+      color: var(--text);
+      background: var(--surface-3);
+      border-color: var(--line-strong);
+    }
+
+    .relay-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .relay {
+      min-height: 88px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      border-radius: 7px;
+      transition: border-color .24s ease, background .24s ease, transform .2s ease;
+    }
+
+    .relay.on {
+      border-color: #2f8050;
+      background: var(--green-dim);
+    }
+
+    .relay.commanding { animation: command .38s ease; }
+
+    .relay-name {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .relay-index {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line-strong);
+      background: #0d1012;
+      border-radius: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .relay-detail {
+      margin: 6px 0 0 37px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .toggle {
+      width: 56px;
+      height: 30px;
+      padding: 3px;
+      border: 1px solid var(--line-strong);
+      background: #0c0f11;
+      border-radius: 15px;
+      transition: background .24s ease, border-color .24s ease, opacity .2s ease;
+    }
+
+    .toggle::after {
+      content: "";
+      display: block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--muted);
+      transform: translateX(0);
+      transition: transform .24s cubic-bezier(.2, .8, .2, 1), background .24s ease;
+    }
+
+    .toggle.on {
+      border-color: var(--green);
+      background: #1f6139;
+    }
+
+    .toggle.on::after {
+      background: #d9ffe6;
+      transform: translateX(24px);
+    }
+
+    .safety-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding-top: 2px;
+    }
+
+    .safety-note {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .presence-body {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .presence-state {
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 0;
+      font-weight: 750;
     }
-    .mark {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      background: var(--ink);
-      color: #fff;
+
+    .presence-radar {
+      position: relative;
+      width: 46px;
+      height: 46px;
       display: grid;
       place-items: center;
-      font-weight: 800;
-      letter-spacing: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: #0d1012;
     }
-    .title { font-size: 18px; font-weight: 750; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
-    input, button, select {
-      font: inherit;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      background: #fff;
-      color: var(--text);
-      height: 38px;
+
+    .presence-radar::before, .presence-radar::after {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
     }
-    input { padding: 0 10px; min-width: 0; }
-    button {
-      padding: 0 12px;
-      cursor: pointer;
-      font-weight: 650;
+
+    .presence-radar::after {
+      inset: 18px;
+      background: var(--muted);
+      border: 0;
     }
-    button.primary { border-color: var(--blue); color: var(--blue); }
-    button.danger { border-color: var(--red); color: var(--red); }
-    button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      overflow: hidden;
+
+    .presence-radar.detected {
+      border-color: var(--cyan);
+      animation: radar 1.8s ease-out infinite;
     }
-    .metric {
-      padding: 11px 12px;
-      border-right: 1px solid var(--line);
-      min-height: 72px;
+
+    .presence-radar.detected::before { border-color: var(--cyan); }
+    .presence-radar.detected::after { background: var(--cyan); }
+
+    .presence-caption {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
     }
-    .metric:last-child { border-right: 0; }
-    .k { color: var(--muted); font-size: 12px; }
-    .v { margin-top: 6px; font-size: 20px; font-weight: 760; overflow-wrap: anywhere; }
-    .ok { color: var(--green); }
-    .bad { color: var(--red); }
-    .warn { color: var(--amber); }
-    .tabs {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      padding: 8px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1.15fr .85fr;
+
+    details.panel summary {
+      list-style: none;
+      min-height: 48px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
+      cursor: pointer;
+      user-select: none;
     }
-    .panel { padding: 12px; }
-    .panel h2 {
-      margin: 0 0 10px;
-      font-size: 15px;
-      letter-spacing: 0;
+
+    details.panel summary::-webkit-details-marker { display: none; }
+
+    .summary-action {
+      color: var(--muted);
+      font-size: 11px;
     }
-    .loads {
+
+    details[open] .summary-action { color: var(--cyan); }
+
+    .diagnostics {
+      border-top: 1px solid var(--line);
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      grid-template-columns: minmax(300px, .8fr) minmax(0, 1.2fr);
+      min-height: 260px;
     }
-    .load {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 10px;
-      background: var(--panel2);
+
+    .diag-grid {
+      padding: 12px 14px;
       display: grid;
-      gap: 8px;
-      min-height: 122px;
+      grid-template-columns: 110px minmax(0, 1fr);
+      align-content: start;
+      gap: 0 12px;
+      border-right: 1px solid var(--line);
+      font-size: 11px;
     }
-    .load-name { font-weight: 750; }
-    .state-pill {
-      width: 76px;
-      height: 28px;
-      border-radius: 7px;
-      display: grid;
-      place-items: center;
-      color: #fff;
-      background: #8a97aa;
-      font-weight: 760;
-    }
-    .state-pill.on { background: var(--green); }
-    .switch-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    canvas {
-      width: 100%;
-      height: 278px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      display: block;
-    }
-    .kv {
-      display: grid;
-      grid-template-columns: 112px 1fr;
-      gap: 6px 10px;
-      font-size: 13px;
-    }
-    .kv div {
-      padding: 7px 0;
-      border-bottom: 1px solid var(--line);
+
+    .diag-grid > div {
       min-width: 0;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
       overflow-wrap: anywhere;
     }
-    #log {
-      height: 280px;
-      overflow: auto;
-      white-space: pre-wrap;
-      background: #111827;
-      color: #d1d5db;
-      border-radius: 8px;
-      border: 1px solid #283142;
-      padding: 10px;
-      font: 12px/1.45 Consolas, "SFMono-Regular", monospace;
+
+    .diag-label { color: var(--muted); }
+
+    .log-wrap {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
     }
-    .hidden { display: none; }
-    @media (max-width: 900px) {
-      .topbar { grid-template-columns: 1fr 1fr; }
-      .brand { grid-column: 1 / -1; }
-      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .grid { grid-template-columns: 1fr; }
-      .loads { grid-template-columns: 1fr; }
-      .tabs { grid-template-columns: repeat(2, 1fr); }
+
+    .log-head {
+      min-height: 40px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    #log {
+      height: 220px;
+      overflow: auto;
+      padding: 10px 12px;
+      white-space: pre-wrap;
+      background: #090b0c;
+      color: #aeb9c1;
+      font: 10px/1.55 Consolas, "SFMono-Regular", monospace;
+    }
+
+    .toast-region {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 10;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      min-width: 220px;
+      max-width: 360px;
+      padding: 11px 12px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface-3);
+      box-shadow: var(--shadow);
+      border-radius: 7px;
+      font-size: 11px;
+      animation: toastIn .24s ease both;
+    }
+
+    .toast.ok { border-color: #2f8050; }
+    .toast.bad { border-color: #8c3f3b; }
+
+    .muted { color: var(--muted); }
+    .ok-text { color: var(--green); }
+    .warn-text { color: var(--orange); }
+    .bad-text { color: var(--red); }
+
+    @keyframes breathe {
+      50% { box-shadow: 0 0 0 7px rgba(66, 207, 120, 0); }
+    }
+
+    @keyframes dataIn {
+      0% { opacity: .35; transform: translateY(4px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes command {
+      50% { transform: scale(.992); }
+    }
+
+    @keyframes radar {
+      0% { box-shadow: 0 0 0 0 rgba(56, 200, 232, .28); }
+      100% { box-shadow: 0 0 0 16px rgba(56, 200, 232, 0); }
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1120px) {
+      .topbar { grid-template-columns: minmax(220px, 1fr) minmax(300px, 420px); }
+      .status-strip { grid-column: 1 / -1; justify-content: flex-start; order: 3; }
+      .workspace { grid-template-columns: 1fr; }
+      .control-column { grid-template-columns: 1.2fr .8fr; }
+      .control-column .panel:first-child { grid-row: span 2; }
+    }
+
+    @media (max-width: 760px) {
+      .app { padding: 8px; gap: 8px; }
+      .topbar { grid-template-columns: 1fr; gap: 10px; padding: 10px; }
+      .status-strip {
+        grid-column: auto;
+        order: initial;
+        justify-content: stretch;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .status-item { justify-content: center; padding: 0 6px; overflow: hidden; }
+      .status-item strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+      .connection { grid-template-columns: minmax(0, 1fr) 72px; }
+      #disconnect { display: none; }
+      .temperature-panel { grid-template-columns: 1fr; }
+      .temperature-main { border-right: 0; border-bottom: 1px solid var(--line); }
+      .temperature-number { font-size: clamp(72px, 25vw, 104px); }
+      .temperature-meta { gap: 5px; }
+      .mini-stat { padding: 8px 7px; }
+      .mini-value { font-size: 13px; }
+      .chart-toolbar { align-items: flex-start; }
+      .chart-legend { gap: 7px; font-size: 9px; }
+      .legend-line { width: 12px; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary-item:nth-child(2) { border-right: 0; }
+      .summary-item:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .control-column { grid-template-columns: 1fr; }
+      .diagnostics { grid-template-columns: 1fr; }
+      .diag-grid { border-right: 0; border-bottom: 1px solid var(--line); }
+      .safety-row { grid-template-columns: 1fr; }
+      .button.danger { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
     }
   </style>
 </head>
 <body>
   <main class="app">
-    <section class="topbar">
+    <header class="topbar">
       <div class="brand">
-        <div class="mark">T</div>
+        <div class="brand-mark" aria-hidden="true">T</div>
         <div>
-          <div class="title">焊台拓展板 V0.3</div>
-          <div class="subtitle">三路负载控制 · 温度曲线 · 调试监视</div>
+          <div class="brand-title">智能焊台控制台</div>
+          <div class="brand-subtitle">设备状态、负载控制与诊断</div>
         </div>
       </div>
-      <input id="ip" placeholder="设备 IP">
-      <button id="connect" class="primary">连接</button>
-      <button id="disconnect">断开</button>
-    </section>
 
-    <section class="metrics">
-      <div class="metric"><div class="k">连接</div><div id="mConn" class="v bad">离线</div></div>
-      <div class="metric"><div class="k">模式</div><div id="mMode" class="v">手动</div></div>
-      <div class="metric"><div class="k">温度</div><div id="mTemp" class="v">--</div></div>
-      <div class="metric"><div class="k">下位机</div><div id="mLower" class="v warn">等待</div></div>
-      <div class="metric"><div class="k">网页</div><div id="mWeb" class="v">未连接</div></div>
-      <div class="metric"><div class="k">最近更新</div><div id="mUpdate" class="v">--</div></div>
-    </section>
-
-    <section class="tabs">
-      <button class="active" data-tab="dash">总览</button>
-      <button data-tab="ctrl">控制</button>
-      <button data-tab="diag">调试</button>
-      <button data-tab="logtab">日志</button>
-    </section>
-
-    <section id="dash" class="grid tab">
-      <div class="panel">
-        <h2>温度曲线</h2>
-        <canvas id="chart"></canvas>
+      <div class="status-strip" aria-label="设备连接状态">
+        <div class="status-item"><span id="wsDot" class="status-dot"></span><strong id="wsText">网页离线</strong></div>
+        <div class="status-item"><span id="lowerDot" class="status-dot"></span><strong id="lowerText">焊台等待</strong></div>
+        <div class="status-item"><span id="espDot" class="status-dot"></span><strong id="espText">ESP 未知</strong></div>
       </div>
-      <div class="panel">
-        <h2>负载状态</h2>
-        <div class="loads">
-          <div class="load"><div class="load-name">照明灯</div><div id="pLight" class="state-pill">OFF</div><div class="k">PB13 · 第一路</div></div>
-          <div class="load"><div class="load-name">排风扇</div><div id="pFan" class="state-pill">OFF</div><div class="k">PB12 · 第二路</div></div>
-          <div class="load"><div class="load-name">第三路</div><div id="pAux" class="state-pill">OFF</div><div class="k">PB14 · 预留</div></div>
-        </div>
-      </div>
-    </section>
 
-    <section id="ctrl" class="panel tab hidden">
-      <h2>手动控制</h2>
-      <div class="loads">
-        <div class="load"><div class="load-name">照明灯</div><div class="switch-row"><button data-target="light" data-value="1">打开</button><button data-target="light" data-value="0">关闭</button></div></div>
-        <div class="load"><div class="load-name">排风扇</div><div class="switch-row"><button data-target="fan" data-value="1">打开</button><button data-target="fan" data-value="0">关闭</button></div></div>
-        <div class="load"><div class="load-name">第三路</div><div class="switch-row"><button data-target="aux" data-value="1">打开</button><button data-target="aux" data-value="0">关闭</button></div></div>
+      <div class="connection">
+        <input id="ip" aria-label="设备 IP" placeholder="输入设备 IP，例如 192.168.1.20">
+        <button id="connect" class="button primary">连接</button>
+        <button id="disconnect" class="icon-button" title="断开连接" aria-label="断开连接">×</button>
       </div>
-      <div style="height:10px"></div>
-      <div class="loads">
-        <button data-target="mode" data-value="0">手动模式</button>
-        <button data-target="mode" data-value="1">自动模式</button>
-        <button id="allOff" class="danger">全部关闭</button>
-      </div>
-    </section>
+    </header>
 
-    <section id="diag" class="panel tab hidden">
-      <h2>调试状态</h2>
-      <div class="kv">
-        <div class="k">设备 IP</div><div id="dIp">--</div>
-        <div class="k">ESP 在线</div><div id="dEsp">--</div>
-        <div class="k">WebSocket</div><div id="dWs">--</div>
-        <div class="k">人体传感器</div><div id="dPresence">保留未启用</div>
-        <div class="k">运行时间</div><div id="dRun">--</div>
-        <div class="k">调试信息</div><div id="dDebug">--</div>
-      </div>
-    </section>
+    <section class="workspace">
+      <div class="main-column">
+        <section class="panel">
+          <div class="temperature-panel">
+            <div id="temperatureMain" class="temperature-main offline">
+              <div class="eyebrow">
+                <span id="workState" class="live-label">等待设备</span>
+                <span>·</span>
+                <span id="channelState">CH1</span>
+              </div>
+              <div class="temperature-value">
+                <span id="temperature" class="temperature-number">--</span>
+                <span class="temperature-unit">°C</span>
+              </div>
+              <div class="temperature-meta">
+                <div class="mini-stat">
+                  <div class="mini-label">目标温度</div>
+                  <div id="targetTemp" class="mini-value">-- °C</div>
+                </div>
+                <div class="mini-stat">
+                  <div class="mini-label">加热功率</div>
+                  <div id="power" class="mini-value">-- %</div>
+                </div>
+                <div class="mini-stat">
+                  <div class="mini-label">输入电压</div>
+                  <div id="vin" class="mini-value">-- V</div>
+                </div>
+              </div>
+            </div>
 
-    <section id="logtab" class="panel tab hidden">
-      <h2>运行日志</h2>
-      <div id="log"></div>
+            <div class="chart-wrap">
+              <div class="chart-toolbar">
+                <div>
+                  <div class="panel-title">温度趋势</div>
+                  <div class="panel-note">最近 80 个有效采样点</div>
+                </div>
+                <div class="chart-legend" aria-label="曲线图例">
+                  <span class="legend-item"><i class="legend-line"></i>当前温度</span>
+                  <span class="legend-item"><i class="legend-line target"></i>目标温度</span>
+                </div>
+              </div>
+              <canvas id="chart" aria-label="温度趋势曲线"></canvas>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-label">控制模式</div>
+              <div id="modeSummary" class="summary-value">手动</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">最后更新</div>
+              <div id="lastUpdate" class="summary-value">--</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">设备 IP</div>
+              <div id="deviceIp" class="summary-value">--</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">运行时间</div>
+              <div id="runTime" class="summary-value">--</div>
+            </div>
+          </div>
+        </section>
+
+        <details class="panel">
+          <summary>
+            <span class="panel-title">设备诊断与运行日志</span>
+            <span class="summary-action">展开诊断</span>
+          </summary>
+          <div class="diagnostics">
+            <div class="diag-grid">
+              <div class="diag-label">接收字节</div><div id="dRx">0</div>
+              <div class="diag-label">完整行</div><div id="dLines">0</div>
+              <div class="diag-label">合法帧</div><div id="dValid">0</div>
+              <div class="diag-label">坏帧</div><div id="dBad">0</div>
+              <div class="diag-label">溢出</div><div id="dOverflow">0</div>
+              <div class="diag-label">错误</div><div id="dError">--</div>
+              <div class="diag-label">最近原文</div><div id="dRaw">--</div>
+              <div class="diag-label">调试信息</div><div id="dDebug">--</div>
+            </div>
+            <div class="log-wrap">
+              <div class="log-head">
+                <span>WebSocket 日志</span>
+                <button id="clearLog" class="button">清空</button>
+              </div>
+              <div id="log"></div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <aside class="control-column">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">负载控制</h2>
+            <span id="controlHint" class="panel-note">连接设备后可操作</span>
+          </div>
+          <div class="control-body">
+            <div class="mode-control" aria-label="控制模式">
+              <button class="mode-button active" data-mode="0">手动模式</button>
+              <button class="mode-button" data-mode="1">自动模式</button>
+            </div>
+
+            <div class="relay-list">
+              <article id="relayLight" class="relay">
+                <div>
+                  <div class="relay-name"><span class="relay-index">R1</span>照明灯</div>
+                  <div class="relay-detail">PB13 · 第一路</div>
+                </div>
+                <button class="toggle" data-relay="light" title="切换照明灯" aria-label="切换照明灯"></button>
+              </article>
+
+              <article id="relayFan" class="relay">
+                <div>
+                  <div class="relay-name"><span class="relay-index">R2</span>排风扇</div>
+                  <div class="relay-detail">PB12 · 第二路</div>
+                </div>
+                <button class="toggle" data-relay="fan" title="切换排风扇" aria-label="切换排风扇"></button>
+              </article>
+
+              <article id="relayAux" class="relay">
+                <div>
+                  <div class="relay-name"><span class="relay-index">R3</span>辅助负载</div>
+                  <div class="relay-detail">PB14 · 第三路</div>
+                </div>
+                <button class="toggle" data-relay="aux" title="切换辅助负载" aria-label="切换辅助负载"></button>
+              </article>
+            </div>
+
+            <div class="safety-row">
+              <div class="safety-note">自动模式下由人体传感器策略接管；全部关闭始终可用。</div>
+              <button id="allOff" class="button danger">全部关闭</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">人体检测</h2>
+            <span id="presenceEnabled" class="panel-note">功能状态未知</span>
+          </div>
+          <div class="presence-body">
+            <div>
+              <div class="presence-state">
+                <span id="presenceRadar" class="presence-radar" aria-hidden="true"></span>
+                <span id="presenceText">等待设备</span>
+              </div>
+              <div id="presenceCaption" class="presence-caption">连接后显示实时检测状态</div>
+            </div>
+            <div id="presenceMode" class="summary-value">--</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">快速状态</h2>
+            <span class="panel-note">实时设备参数</span>
+          </div>
+          <div class="diag-grid" style="border-right:0">
+            <div class="diag-label">下位机模式</div><div id="quickLowerMode">--</div>
+            <div class="diag-label">网页连接</div><div id="quickWeb">离线</div>
+            <div class="diag-label">ESP 状态</div><div id="quickEsp">未知</div>
+            <div class="diag-label">固件版本</div><div id="quickFw">--</div>
+          </div>
+        </section>
+      </aside>
     </section>
   </main>
 
+  <div id="toasts" class="toast-region" aria-live="polite"></div>
+
   <script>
-    const state = {
+    const app = {
       ip: localStorage.getItem("ext.ip") || "",
       ws: null,
       seq: 1,
       last: null,
       samples: [],
+      relays: { light: 0, fan: 0, aux: 0 },
+      mode: "MANUAL",
+      connected: false,
+      chartFrame: 0,
     };
 
     const $ = (id) => document.getElementById(id);
-    $("ip").value = state.ip;
+    $("ip").value = app.ip;
+
+    const modeLabels = {
+      E: "温度异常",
+      O: "已关闭",
+      S: "睡眠",
+      B: "Boost",
+      W: "工作中",
+      H: "正在加热",
+      L: "保温",
+    };
 
     function log(line) {
       const text = `[${new Date().toLocaleTimeString()}] ${line}\n`;
-      $("log").textContent = text + $("log").textContent.slice(0, 6000);
+      $("log").textContent = text + $("log").textContent.slice(0, 12000);
     }
 
-    function send(target, value) {
-      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
-        log("未连接，命令未发送");
-        return;
-      }
-      const seq = String(state.seq++);
-      state.ws.send(JSON.stringify({ type: "cmd", seq, target, value }));
-      log(`发送命令 seq=${seq} target=${target} value=${value}`);
+    function toast(message, type = "") {
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      el.textContent = message;
+      $("toasts").appendChild(el);
+      setTimeout(() => el.remove(), 2600);
     }
 
-    function setPill(id, on) {
-      const el = $(id);
-      el.textContent = on ? "ON" : "OFF";
-      el.classList.toggle("on", !!on);
+    function setDot(id, mode) {
+      $(id).className = `status-dot${mode ? ` ${mode}` : ""}`;
     }
 
     function relayOf(data, key) {
-      if (data && data.relay && typeof data.relay === "object" && !Array.isArray(data.relay)) return data.relay[key] ? 1 : 0;
-      if (Array.isArray(data.relay)) {
+      if (data && data.relay && typeof data.relay === "object" && !Array.isArray(data.relay)) {
+        return data.relay[key] ? 1 : 0;
+      }
+      if (Array.isArray(data && data.relay)) {
         if (key === "light") return data.relay[2] ? 1 : 0;
         if (key === "fan") return data.relay[1] ? 1 : 0;
         if (key === "aux") return data.relay[3] ? 1 : 0;
@@ -306,136 +1072,340 @@
       return 0;
     }
 
+    function send(target, value) {
+      if (!app.ws || app.ws.readyState !== WebSocket.OPEN) {
+        log("未连接，命令未发送");
+        toast("设备未连接，命令未发送", "bad");
+        return false;
+      }
+      const seq = String(app.seq++);
+      app.ws.send(JSON.stringify({ type: "cmd", seq, target, value }));
+      log(`发送命令 seq=${seq} target=${target} value=${value}`);
+      return true;
+    }
+
+    function updateConnection(connected) {
+      app.connected = connected;
+      setDot("wsDot", connected ? "online" : "");
+      $("wsText").textContent = connected ? "网页在线" : "网页离线";
+      $("quickWeb").textContent = connected ? "在线" : "离线";
+      $("quickWeb").className = connected ? "ok-text" : "bad-text";
+      $("connect").textContent = connected ? "已连接" : "连接";
+      $("connect").disabled = connected;
+      $("disconnect").disabled = !connected;
+      if (!connected) {
+        setDot("lowerDot", "warn");
+        setDot("espDot", "warn");
+        $("lowerText").textContent = "焊台状态未知";
+        $("espText").textContent = "ESP 状态未知";
+        $("quickEsp").textContent = "未知";
+        $("quickEsp").className = "warn-text";
+      }
+      updateControls();
+    }
+
+    function updateControls() {
+      const manual = app.mode !== "AUTO";
+      document.querySelectorAll("[data-relay]").forEach(btn => {
+        btn.disabled = !app.connected || !manual;
+      });
+      document.querySelectorAll("[data-mode]").forEach(btn => {
+        btn.disabled = !app.connected;
+        btn.classList.toggle("active", Number(btn.dataset.mode) === (app.mode === "AUTO" ? 1 : 0));
+      });
+      $("allOff").disabled = !app.connected;
+      $("controlHint").textContent = !app.connected ? "连接设备后可操作" : manual ? "手动控制可用" : "自动策略已接管";
+    }
+
+    function updateRelay(key, on) {
+      app.relays[key] = on ? 1 : 0;
+      const relay = $(`relay${key[0].toUpperCase()}${key.slice(1)}`);
+      const toggle = document.querySelector(`[data-relay="${key}"]`);
+      relay.classList.toggle("on", !!on);
+      toggle.classList.toggle("on", !!on);
+      toggle.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+
+    function animateNumber(value) {
+      const el = $("temperature");
+      const next = String(value);
+      if (el.textContent === next) return;
+      el.textContent = next;
+      el.classList.remove("updated");
+      void el.offsetWidth;
+      el.classList.add("updated");
+    }
+
+    function formatRunTime(ms) {
+      if (!Number.isFinite(Number(ms))) return "--";
+      const total = Math.floor(Number(ms) / 1000);
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+    }
+
+    function scheduleChart() {
+      cancelAnimationFrame(app.chartFrame);
+      app.chartFrame = requestAnimationFrame(drawChart);
+    }
+
     function drawChart() {
-      const c = $("chart");
-      const dpr = window.devicePixelRatio || 1;
-      const rect = c.getBoundingClientRect();
-      c.width = Math.floor(rect.width * dpr);
-      c.height = Math.floor(rect.height * dpr);
-      const ctx = c.getContext("2d");
+      const canvas = $("chart");
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      const ctx = canvas.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const w = rect.width, h = rect.height;
+
+      const w = rect.width;
+      const h = rect.height;
+      const left = 34;
+      const right = 10;
+      const top = 10;
+      const bottom = 22;
+      const plotW = w - left - right;
+      const plotH = h - top - bottom;
+
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = "#d9e1ec";
+
+      ctx.strokeStyle = "#2b3238";
+      ctx.fillStyle = "#8f9ca6";
       ctx.lineWidth = 1;
-      for (let i = 0; i < 6; i++) {
-        const y = 22 + i * ((h - 44) / 5);
+      ctx.font = '10px "Segoe UI", "Microsoft YaHei"';
+
+      [0, 100, 200, 300, 400].forEach(value => {
+        const y = top + plotH - (value / 450) * plotH;
         ctx.beginPath();
-        ctx.moveTo(38, y);
-        ctx.lineTo(w - 12, y);
+        ctx.moveTo(left, y);
+        ctx.lineTo(w - right, y);
+        ctx.stroke();
+        ctx.fillText(String(value), 4, y + 3);
+      });
+
+      for (let i = 0; i <= 4; i++) {
+        const x = left + (plotW / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, top + plotH);
         ctx.stroke();
       }
-      ctx.fillStyle = "#667085";
-      ctx.font = "12px Segoe UI, Microsoft YaHei";
-      ctx.fillText("450", 8, 26);
-      ctx.fillText("0", 18, h - 20);
-      if (state.samples.length < 2) return;
-      ctx.strokeStyle = "#246bfe";
-      ctx.lineWidth = 2;
+
+      const target = Number(app.last && app.last.setTemp);
+      if (Number.isFinite(target) && target >= 0) {
+        const y = top + plotH - (Math.min(450, target) / 450) * plotH;
+        ctx.save();
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = "#ff9b42";
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(w - right, y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (app.samples.length < 2) {
+        ctx.fillStyle = "#8f9ca6";
+        ctx.textAlign = "center";
+        ctx.fillText("等待有效温度数据", left + plotW / 2, top + plotH / 2);
+        ctx.textAlign = "left";
+        return;
+      }
+
+      const points = app.samples.map((value, index) => ({
+        x: left + (index / Math.max(1, app.samples.length - 1)) * plotW,
+        y: top + plotH - (Math.max(0, Math.min(450, value)) / 450) * plotH,
+      }));
+
       ctx.beginPath();
-      state.samples.forEach((v, i) => {
-        const x = 40 + i * ((w - 56) / 79);
-        const y = h - 22 - Math.max(0, Math.min(450, v)) * ((h - 48) / 450);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
+      points.forEach((point, index) => index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y));
+      ctx.lineTo(points[points.length - 1].x, top + plotH);
+      ctx.lineTo(points[0].x, top + plotH);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(56, 200, 232, .12)";
+      ctx.fill();
+
+      ctx.beginPath();
+      points.forEach((point, index) => index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y));
+      ctx.strokeStyle = "#38c8e8";
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      const last = points[points.length - 1];
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#121518";
+      ctx.fill();
+      ctx.strokeStyle = "#38c8e8";
+      ctx.lineWidth = 2;
       ctx.stroke();
     }
 
     function render(data) {
-      state.last = data;
-      const mode = data.mode === "AUTO" ? "自动" : "手动";
-      const temp = Number(data.temp);
+      app.last = data;
+      app.mode = data.mode === "AUTO" ? "AUTO" : "MANUAL";
+
       const lower = !!data.lowerOnline;
-      const light = relayOf(data, "light");
-      const fan = relayOf(data, "fan");
-      const aux = relayOf(data, "aux");
+      const esp = !!data.espOnline;
+      const temp = Number(data.temp);
+      const target = Number(data.setTemp);
+      const power = Number(data.power);
+      const vin = Number(data.vin);
+      const lowerMode = String(data.lowerMode || "O");
+      const workLabel = modeLabels[lowerMode] || lowerMode;
+      const heating = lower && (lowerMode === "H" || power > 0);
 
-      $("mConn").textContent = "在线";
-      $("mConn").className = "v ok";
-      $("mMode").textContent = mode;
-      $("mMode").className = data.mode === "AUTO" ? "v warn" : "v";
-      $("mTemp").textContent = lower && temp >= 0 ? `${temp} °C` : "--";
-      $("mLower").textContent = lower ? "在线" : "离线";
-      $("mLower").className = lower ? "v ok" : "v warn";
-      $("mWeb").textContent = data.webOnline ? "已连接" : "未连接";
-      $("mUpdate").textContent = new Date().toLocaleTimeString();
+      setDot("lowerDot", lower ? "online" : "warn");
+      $("lowerText").textContent = lower ? "焊台在线" : "焊台离线";
+      setDot("espDot", esp ? "online" : "warn");
+      $("espText").textContent = esp ? "ESP 在线" : "ESP 离线";
 
-      setPill("pLight", light);
-      setPill("pFan", fan);
-      setPill("pAux", aux);
+      $("temperatureMain").classList.toggle("offline", !lower);
+      $("temperatureMain").classList.toggle("heating", heating);
+      $("workState").textContent = lower ? workLabel : "焊台离线";
+      $("workState").className = `live-label ${lower ? heating ? "warn-text" : "ok-text" : "bad-text"}`;
+      animateNumber(lower && temp >= 0 ? temp : "--");
+      $("targetTemp").textContent = Number.isFinite(target) ? `${target} °C` : "-- °C";
+      $("power").textContent = Number.isFinite(power) ? `${power} %` : "-- %";
+      $("vin").textContent = Number.isFinite(vin) && vin > 0 ? `${vin} V` : "-- V";
 
-      $("dIp").textContent = data.ip || state.ip || "--";
-      $("dEsp").textContent = data.espOnline ? "在线" : "离线";
-      $("dWs").textContent = data.webOnline ? "连接" : "断开";
-      $("dPresence").textContent = data.presence && data.presence.enabled ? (data.presence.detected ? "有人" : "无人") : "保留未启用";
-      $("dRun").textContent = data.runTimeMs ? `${Math.floor(data.runTimeMs / 1000)} s` : "--";
-      if (data.lowerDiag) {
-        const d = data.lowerDiag;
-        $("dDebug").textContent =
-          `lower rx=${d.rxBytes || 0}, lines=${d.lines || 0}, valid=${d.valid || 0}, bad=${d.bad || 0}, ` +
-          `ovf=${d.overflow || 0}, err=${d.err || "--"}, raw=${d.raw || "--"}`;
-      } else {
-        $("dDebug").textContent = data.debug || "--";
-      }
+      $("modeSummary").textContent = app.mode === "AUTO" ? "自动模式" : "手动模式";
+      $("modeSummary").className = `summary-value ${app.mode === "AUTO" ? "warn" : "ok"}`;
+      $("lastUpdate").textContent = new Date().toLocaleTimeString();
+      $("lastUpdate").className = "summary-value ok";
+      $("deviceIp").textContent = data.ip || app.ip || "--";
+      $("runTime").textContent = formatRunTime(data.runTimeMs);
+
+      updateRelay("light", relayOf(data, "light"));
+      updateRelay("fan", relayOf(data, "fan"));
+      updateRelay("aux", relayOf(data, "aux"));
+      updateControls();
+
+      const presence = data.presence || {};
+      const presenceEnabled = !!presence.enabled;
+      const detected = presenceEnabled && !!presence.detected;
+      $("presenceEnabled").textContent = presenceEnabled ? "功能已启用" : "功能未启用";
+      $("presenceEnabled").className = `panel-note ${presenceEnabled ? "ok-text" : ""}`;
+      $("presenceRadar").classList.toggle("detected", detected);
+      $("presenceText").textContent = !presenceEnabled ? "传感器未启用" : detected ? "检测到有人" : "当前无人";
+      $("presenceCaption").textContent = app.mode === "AUTO" ? "自动模式将依据检测状态控制照明与排风" : "手动模式下仅显示状态，不自动控制";
+      $("presenceMode").textContent = app.mode === "AUTO" ? "自动接管" : "仅监测";
+      $("presenceMode").className = `summary-value ${app.mode === "AUTO" ? "warn" : ""}`;
+
+      $("quickLowerMode").textContent = workLabel;
+      $("quickEsp").textContent = esp ? "在线" : "离线";
+      $("quickEsp").className = esp ? "ok-text" : "bad-text";
+      $("quickFw").textContent = data.fw || "--";
+
+      const diag = data.lowerDiag || {};
+      $("dRx").textContent = diag.rxBytes || 0;
+      $("dLines").textContent = diag.lines || 0;
+      $("dValid").textContent = diag.valid || 0;
+      $("dBad").textContent = diag.bad || 0;
+      $("dOverflow").textContent = diag.overflow || 0;
+      $("dError").textContent = diag.err || "--";
+      $("dRaw").textContent = diag.raw || "--";
+      $("dDebug").textContent = data.debug || "--";
 
       if (lower && temp >= 0) {
-        state.samples.push(temp);
-        if (state.samples.length > 80) state.samples.shift();
-        drawChart();
+        app.samples.push(temp);
+        if (app.samples.length > 80) app.samples.shift();
       }
+      scheduleChart();
     }
 
     function connect() {
       const ip = $("ip").value.trim();
-      if (!ip) return;
+      if (!ip) {
+        toast("请先输入设备 IP", "bad");
+        $("ip").focus();
+        return;
+      }
+
       localStorage.setItem("ext.ip", ip);
-      state.ip = ip;
-      if (state.ws) state.ws.close();
+      app.ip = ip;
+      if (app.ws) app.ws.close();
+
       const url = `ws://${ip}:81/`;
       log(`连接 ${url}`);
-      state.ws = new WebSocket(url);
-      state.ws.onopen = () => {
+      $("connect").textContent = "连接中";
+      $("connect").disabled = true;
+
+      try {
+        app.ws = new WebSocket(url);
+      } catch (error) {
+        updateConnection(false);
+        toast("WebSocket 地址无效", "bad");
+        return;
+      }
+
+      app.ws.onopen = () => {
+        updateConnection(true);
         log("WebSocket 已连接");
-        state.ws.send(JSON.stringify({ type: "get_state" }));
+        toast("设备连接成功", "ok");
+        app.ws.send(JSON.stringify({ type: "get_state" }));
       };
-      state.ws.onclose = () => {
-        $("mConn").textContent = "离线";
-        $("mConn").className = "v bad";
+
+      app.ws.onclose = () => {
+        updateConnection(false);
         log("WebSocket 已断开");
       };
-      state.ws.onerror = () => log("WebSocket 错误");
-      state.ws.onmessage = (ev) => {
-        log(ev.data);
+
+      app.ws.onerror = () => {
+        log("WebSocket 错误");
+        toast("连接失败，请检查设备 IP 和网络", "bad");
+      };
+
+      app.ws.onmessage = event => {
+        log(event.data);
         try {
-          const msg = JSON.parse(ev.data);
-          if (msg.type === "state") render(msg.data || {});
-          if (msg.type === "ack") log(msg.raw || "ACK");
-        } catch (e) {
+          const message = JSON.parse(event.data);
+          if (message.type === "state") render(message.data || {});
+          if (message.type === "ack") log(message.raw || "ACK");
+        } catch (error) {
           log("无法解析消息");
         }
       };
     }
 
-    document.querySelectorAll("[data-tab]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("[data-tab]").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab").forEach(p => p.classList.add("hidden"));
-        btn.classList.add("active");
-        $(btn.dataset.tab).classList.remove("hidden");
-        drawChart();
+    document.querySelectorAll("[data-relay]").forEach(button => {
+      button.addEventListener("click", () => {
+        const key = button.dataset.relay;
+        const next = app.relays[key] ? 0 : 1;
+        if (send(key, next)) {
+          const relay = button.closest(".relay");
+          relay.classList.remove("commanding");
+          void relay.offsetWidth;
+          relay.classList.add("commanding");
+        }
       });
     });
 
-    document.querySelectorAll("[data-target]").forEach(btn => {
-      btn.addEventListener("click", () => send(btn.dataset.target, Number(btn.dataset.value)));
+    document.querySelectorAll("[data-mode]").forEach(button => {
+      button.addEventListener("click", () => send("mode", Number(button.dataset.mode)));
     });
-    $("allOff").addEventListener("click", () => send("all", 0));
+
+    $("allOff").addEventListener("click", () => {
+      if (send("all", 0)) toast("已发送全部关闭命令");
+    });
+
     $("connect").addEventListener("click", connect);
-    $("disconnect").addEventListener("click", () => state.ws && state.ws.close());
-    window.addEventListener("resize", drawChart);
-    drawChart();
+    $("disconnect").addEventListener("click", () => app.ws && app.ws.close());
+    $("clearLog").addEventListener("click", () => $("log").textContent = "");
+    document.querySelector("details.panel").addEventListener("toggle", event => {
+      event.currentTarget.querySelector(".summary-action").textContent = event.currentTarget.open ? "收起诊断" : "展开诊断";
+    });
+    $("ip").addEventListener("keydown", event => {
+      if (event.key === "Enter") connect();
+    });
+
+    window.addEventListener("resize", scheduleChart);
+    updateConnection(false);
+    scheduleChart();
   </script>
 </body>
 </html>
